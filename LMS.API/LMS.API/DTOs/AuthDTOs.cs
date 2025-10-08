@@ -54,3 +54,14 @@ public class AuthResponseDto
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 }
+
+public class AdminPasswordUpdateDto
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [StringLength(255, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 255 characters")]
+    public string NewPassword { get; set; } = string.Empty;
+}

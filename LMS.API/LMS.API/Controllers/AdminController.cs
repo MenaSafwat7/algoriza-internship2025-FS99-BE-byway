@@ -49,6 +49,31 @@ public class AdminController : ControllerBase
         }
     }
 
+    [HttpPost("update-password")]
+    public async Task<ActionResult> UpdatePassword([FromBody] AdminPasswordUpdateDto passwordDto)
+    {
+        try
+        {
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.Email == passwordDto.Email);
+
+            if (admin == null)
+            {
+                return NotFound(new { message = "Admin not found" });
+            }
+
+            // Update password with BCrypt hash
+            admin.Password = BCrypt.Net.BCrypt.HashPassword(passwordDto.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Password updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while updating password", error = ex.Message });
+        }
+    }
+
     [HttpGet("dashboard-stats")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DashboardStatsDto>> GetDashboardStats()
