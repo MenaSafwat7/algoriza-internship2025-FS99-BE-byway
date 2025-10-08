@@ -363,7 +363,7 @@ The application automatically seeds initial data on first run:
 
 ### Admin Account
 - **Email:** `admin@byway.com`
-- **Password:** `admin1234`
+- **Password:** `password`
 
 ### Categories
 - Full Stack
