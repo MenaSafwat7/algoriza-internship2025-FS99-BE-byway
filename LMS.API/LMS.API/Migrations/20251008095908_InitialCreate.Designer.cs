@@ -60,7 +60,7 @@ namespace LMS.API.Migrations
                             AdminId = 1,
                             Address = "123 Admin Street, Admin City",
                             Email = "admin@byway.com",
-                            Password = "$2a$11$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+                            Password = "Admin@123"
                         });
                 });
 

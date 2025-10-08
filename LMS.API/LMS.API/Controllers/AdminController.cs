@@ -28,7 +28,7 @@ public class AdminController : ControllerBase
             var admin = await _context.Admins
                 .FirstOrDefaultAsync(a => a.Email == loginDto.Email);
 
-            if (admin == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, admin.Password))
+            if (admin == null || admin.Password != loginDto.Password)
             {
                 return Unauthorized(new { message = "Invalid email or password" });
             }
@@ -62,8 +62,8 @@ public class AdminController : ControllerBase
                 return NotFound(new { message = "Admin not found" });
             }
 
-            // Update password with BCrypt hash
-            admin.Password = BCrypt.Net.BCrypt.HashPassword(passwordDto.NewPassword);
+            // Update password without hashing
+            admin.Password = passwordDto.NewPassword;
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Password updated successfully" });
