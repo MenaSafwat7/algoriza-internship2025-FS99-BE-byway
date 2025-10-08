@@ -49,7 +49,9 @@ builder.Services.AddCors(options =>
                 "http://localhost:3001",
                 "https://menasafwat7.github.io",
                 "https://menasafwat7.github.io/algoriza-internship2025-FS99-FE-byway-user/",
-                "https://menasafwat7.github.io/algoriza-internship2025-FS99-FE-byway-admin/"
+                "https://menasafwat7.github.io/algoriza-internship2025-FS99-FE-byway-admin/",
+                "https://menasafwat7.github.io/algoriza-internship2025-FS99-BE-byway/",
+                "https://your-production-domain.com"
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
