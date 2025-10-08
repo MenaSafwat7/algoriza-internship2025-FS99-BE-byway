@@ -82,40 +82,55 @@ using (var scope = app.Services.CreateScope())
             logger.LogInformation($"Attempting database initialization (attempt {retryCount + 1}/{maxRetries})");
             
             // Test connection first
-            if (context.Database.CanConnect())
+            try
             {
-                logger.LogInformation("Database connection successful");
-                context.Database.EnsureCreated();
-                
-                // Seed admin data if not exists
-                if (!context.Admins.Any())
+                var canConnect = context.Database.CanConnect();
+                if (canConnect)
                 {
-                    logger.LogInformation("Seeding admin data...");
-                    context.Admins.Add(new LMS.API.Models.Admin
+                    logger.LogInformation("Database connection successful");
+                    
+                    // Use EnsureCreated instead of Migrate for shared hosting
+                    logger.LogInformation("Creating database schema...");
+                    context.Database.EnsureCreated();
+                    logger.LogInformation("Database schema created successfully");
+                    
+                    // Seed admin data if not exists
+                    if (!context.Admins.Any())
                     {
-                        AdminId = 1,
-                        Email = "admin@byway.com",
-                        Password = "Admin@123",
-                        Address = "123 Admin Street, Admin City"
-                    });
-                    context.SaveChanges();
-                    logger.LogInformation("Admin data seeded successfully");
+                        logger.LogInformation("Seeding admin data...");
+                        context.Admins.Add(new LMS.API.Models.Admin
+                        {
+                            AdminId = 1,
+                            Email = "admin@byway.com",
+                            Password = "Admin@123",
+                            Address = "123 Admin Street, Admin City"
+                        });
+                        context.SaveChanges();
+                        logger.LogInformation("Admin data seeded successfully");
+                    }
+                    else
+                    {
+                        logger.LogInformation("Admin data already exists");
+                    }
+                    break; // Success, exit retry loop
                 }
                 else
                 {
-                    logger.LogInformation("Admin data already exists");
+                    throw new Exception("Cannot connect to database - CanConnect returned false");
                 }
-                break; // Success, exit retry loop
             }
-            else
+            catch (Exception dbEx)
             {
-                throw new Exception("Cannot connect to database");
+                logger.LogError(dbEx, $"Database connection failed: {dbEx.Message}");
+                throw new Exception($"Database connection failed: {dbEx.Message}", dbEx);
             }
         }
         catch (Exception ex)
         {
             retryCount++;
             logger.LogWarning(ex, $"Database initialization attempt {retryCount} failed: {ex.Message}");
+            logger.LogWarning($"Inner exception: {ex.InnerException?.Message}");
+            logger.LogWarning($"Stack trace: {ex.StackTrace}");
             
             if (retryCount >= maxRetries)
             {
