@@ -38,7 +38,7 @@ const Signup = () => {
         username: data.username.trim(),
         email: data.email.trim().toLowerCase(),
         password: data.password,
-        confirmPassword: data.confirmPassword
+        ConfirmPassword: data.confirmPassword
       });
 
       if (result.success) {
