@@ -91,8 +91,8 @@ public class LMSDbContext : DbContext
             new Admin
             {
                 AdminId = 1,
-                Email = "admin@lms.com",
-                Password = "$2a$11$U8147i2JYN.raf8LpGLmZOQUDrWWTfo84dwleldmRvw8OrUmVihKS",
+                Email = "admin@byway.com",
+                Password = "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",
                 Address = "123 Admin Street, Admin City"
             }
         );

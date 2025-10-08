@@ -197,7 +197,7 @@ namespace LMS.API.Migrations
             migrationBuilder.InsertData(
                 table: "Admins",
                 columns: new[] { "AdminId", "Address", "Email", "Password" },
-                values: new object[] { 1, "123 Admin Street, Admin City", "admin@lms.com", "$2a$11$U8147i2JYN.raf8LpGLmZOQUDrWWTfo84dwleldmRvw8OrUmVihKS" });
+                values: new object[] { 1, "123 Admin Street, Admin City", "admin@byway.com", "$2a$11$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi" });
 
             migrationBuilder.InsertData(
                 table: "Categories",
