@@ -2,12 +2,14 @@
   "name": "user-webapp",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://menasafwat7.github.io/algoriza-internship2025-FS99-FE-byway-user",
   "dependencies": {
     "@headlessui/react": "^1.7.15",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
     "canvas-confetti": "^1.9.3",
     "framer-motion": "^10.12.0",
+    "gh-pages": "^6.0.0",
     "lucide-react": "^0.263.0",
     "postcss": "^8.4.24",
     "react": "^18.2.0",
@@ -22,7 +24,9 @@
     "start": "set PORT=3000 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [

@@ -186,7 +186,7 @@ const Login = () => {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url('https:
+            backgroundImage: `url('https://via.placeholder.com/800x600/6366F1/FFFFFF?text=Login')`
           }}
         >
           <div className="absolute inset-0 bg-black bg-opacity-20"></div>

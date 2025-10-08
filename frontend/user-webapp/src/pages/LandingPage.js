@@ -429,7 +429,7 @@ const LandingPage = () => {
               className="flex items-center"
             >
               <div className="w-32 h-32 bg-purple-100 rounded-full flex items-center justify-center mr-8">
-                <img src="https:
+                <img src="https://via.placeholder.com/128x128/8B5CF6/FFFFFF?text=Teach" alt="Instructor" className="w-16 h-16" />
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">Become an Instructor</h3>
