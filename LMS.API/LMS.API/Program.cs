@@ -12,9 +12,10 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<LMSDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 3,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null)));
+            maxRetryCount: 10,
+            maxRetryDelay: TimeSpan.FromSeconds(60),
+            errorNumbersToAdd: null)
+        .CommandTimeout(120)));
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["SecretKey"] ?? "DefaultSecretKeyForDevelopmentOnly123456789";
@@ -69,27 +70,62 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<LMSDbContext>();
-    try
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
+    int retryCount = 0;
+    int maxRetries = 5;
+    
+    while (retryCount < maxRetries)
     {
-        context.Database.EnsureCreated();
-        
-        // Seed admin data if not exists
-        if (!context.Admins.Any())
+        try
         {
-            context.Admins.Add(new LMS.API.Models.Admin
+            logger.LogInformation($"Attempting database initialization (attempt {retryCount + 1}/{maxRetries})");
+            
+            // Test connection first
+            if (context.Database.CanConnect())
             {
-                AdminId = 1,
-                Email = "admin@byway.com",
-                Password = "Admin@123",
-                Address = "123 Admin Street, Admin City"
-            });
-            context.SaveChanges();
+                logger.LogInformation("Database connection successful");
+                context.Database.EnsureCreated();
+                
+                // Seed admin data if not exists
+                if (!context.Admins.Any())
+                {
+                    logger.LogInformation("Seeding admin data...");
+                    context.Admins.Add(new LMS.API.Models.Admin
+                    {
+                        AdminId = 1,
+                        Email = "admin@byway.com",
+                        Password = "Admin@123",
+                        Address = "123 Admin Street, Admin City"
+                    });
+                    context.SaveChanges();
+                    logger.LogInformation("Admin data seeded successfully");
+                }
+                else
+                {
+                    logger.LogInformation("Admin data already exists");
+                }
+                break; // Success, exit retry loop
+            }
+            else
+            {
+                throw new Exception("Cannot connect to database");
+            }
         }
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while applying migrations.");
+        catch (Exception ex)
+        {
+            retryCount++;
+            logger.LogWarning(ex, $"Database initialization attempt {retryCount} failed: {ex.Message}");
+            
+            if (retryCount >= maxRetries)
+            {
+                logger.LogError(ex, $"Database initialization failed after {maxRetries} attempts. Application will continue but database operations may fail.");
+                break;
+            }
+            
+            // Wait before retrying
+            Thread.Sleep(TimeSpan.FromSeconds(5 * retryCount));
+        }
     }
 }
 
