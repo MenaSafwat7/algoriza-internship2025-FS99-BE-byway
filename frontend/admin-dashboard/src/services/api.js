@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5045/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://minasafwat-001-site1.stempurl.com/api';
 
 class ApiService {
   constructor() {

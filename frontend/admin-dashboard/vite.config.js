@@ -10,7 +10,9 @@ export default defineConfig({
     port: 3001,
     proxy: {
       '/api': {
-        target: 'http://localhost:5045',
+        target: process.env.NODE_ENV === 'production' 
+          ? 'http://minasafwat-001-site1.stempurl.com' 
+          : 'http://localhost:5045',
         changeOrigin: true,
         secure: false,
       }
