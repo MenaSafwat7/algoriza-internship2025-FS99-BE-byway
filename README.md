@@ -362,8 +362,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 The application automatically seeds initial data on first run:
 
 ### Admin Account
-- **Email:** `admin@lms.com`
-- **Password:** `Admin123!`
+- **Email:** `admin@byway.com`
+- **Password:** `admin1234`
 
 ### Categories
 - Full Stack
