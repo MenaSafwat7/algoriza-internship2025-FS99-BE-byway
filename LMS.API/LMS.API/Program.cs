@@ -47,7 +47,9 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:3000", 
                 "http://localhost:3001",
-                "https://menasafwat7.github.io"
+                "https://menasafwat7.github.io",
+                "https://menasafwat7.github.io/algoriza-internship2025-FS99-FE-byway-user/",
+                "https://menasafwat7.github.io/algoriza-internship2025-FS99-FE-byway-admin/"
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
