@@ -71,7 +71,20 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<LMSDbContext>();
     try
     {
-        context.Database.Migrate();
+        context.Database.EnsureCreated();
+        
+        // Seed admin data if not exists
+        if (!context.Admins.Any())
+        {
+            context.Admins.Add(new LMS.API.Models.Admin
+            {
+                AdminId = 1,
+                Email = "admin@byway.com",
+                Password = "Admin@123",
+                Address = "123 Admin Street, Admin City"
+            });
+            context.SaveChanges();
+        }
     }
     catch (Exception ex)
     {
