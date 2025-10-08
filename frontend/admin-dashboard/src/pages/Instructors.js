@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Eye, Edit, Trash2, Star } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, Star, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import InstructorModal from '../components/InstructorModal';
 import ConfirmDialog from '../components/ConfirmDialog';
-import Pagination from '../components/Pagination';
 
 const Instructors = () => {
   const [instructors, setInstructors] = useState([]);
@@ -13,6 +12,7 @@ const Instructors = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('add');
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, instructor: null });
   const pageSize = 10;
@@ -46,16 +46,19 @@ const Instructors = () => {
 
   const handleAddInstructor = () => {
     setSelectedInstructor(null);
+    setModalMode('add');
     setModalOpen(true);
   };
 
   const handleEditInstructor = (instructor) => {
     setSelectedInstructor(instructor);
+    setModalMode('edit');
     setModalOpen(true);
   };
 
   const handleViewInstructor = (instructor) => {
     setSelectedInstructor(instructor);
+    setModalMode('view');
     setModalOpen(true);
   };
 
@@ -84,10 +87,10 @@ const Instructors = () => {
 
   const getJobTitleDisplay = (jobTitle) => {
     const titles = {
-      1: 'Frontend Developer',
-      2: 'Backend Developer',
-      3: 'Full Stack Developer',
-      4: 'UI/UX Designer'
+      1: 'Frontend',
+      2: 'Backend',
+      3: 'Full Stack',
+      4: 'UI/UX Design'
     };
     return titles[jobTitle] || 'Unknown';
   };
@@ -104,47 +107,61 @@ const Instructors = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Instructors Management</h1>
-          <p className="mt-2 text-gray-600">
-            Total Instructors: {totalCount}
-          </p>
+    <div className="bg-gray-50 min-h-screen p-6">
+      {}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Instructors</h1>
+          <div className="relative">
+            <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+          </div>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <p className="text-sm text-gray-500">Dashboard / Instructors</p>
+      </div>
+
+      {}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        {}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-xl font-semibold text-gray-900">Instructors</h2>
+            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+              {totalCount}
+            </span>
+          </div>
+        </div>
+
+        {}
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={handleAddInstructor}
-            className="btn-primary flex items-center"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            Add New Instructor
+            <Plus className="h-4 w-4" />
+            <span>Add Instructor</span>
           </button>
-        </div>
-      </div>
 
-      {/* Search Bar */}
-      <div className="card p-4">
-        <div className="relative max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search for Instructors"
+                value={searchTerm}
+                onChange={handleSearch}
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+              />
+            </div>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <Filter className="h-5 w-5 text-gray-600" />
+            </button>
           </div>
-          <input
-            type="text"
-            placeholder="Search by name or job title..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="input-field pl-10"
-          />
         </div>
-      </div>
 
-      {/* Instructors Table */}
-      <div className="card overflow-hidden">
+        {}
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : instructors.length === 0 ? (
           <div className="text-center py-12">
@@ -153,88 +170,52 @@ const Instructors = () => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Instructor
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Job Title
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rating
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Courses
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Job Title</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Rate</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Action</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody>
                   {instructors.map((instructor) => (
-                    <tr key={instructor.instructorId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0">
-                            {instructor.imageUrl ? (
-                              <img
-                                className="h-10 w-10 rounded-full object-cover"
-                                src={`http://localhost:5000${instructor.imageUrl}`}
-                                alt={instructor.name}
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                <span className="text-gray-600 font-medium">
-                                  {instructor.name.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {instructor.name}
-                            </div>
-                          </div>
+                    <tr key={instructor.instructorId} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-4 px-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {instructor.name}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <td className="py-4 px-4">
+                        <span className="text-sm text-gray-600">
                           {getJobTitleDisplay(instructor.jobTitle)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="py-4 px-4">
                         <div className="flex items-center">
                           {renderStars(instructor.rate)}
-                          <span className="ml-2 text-sm text-gray-600">
-                            ({instructor.rate})
-                          </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {instructor.courseCount} courses
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center space-x-3">
                           <button
                             onClick={() => handleViewInstructor(instructor)}
-                            className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                            className="text-blue-600 hover:text-blue-800 p-1 rounded"
                             title="View"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleEditInstructor(instructor)}
-                            className="text-green-600 hover:text-green-900 p-1 rounded"
+                            className="text-blue-600 hover:text-blue-800 p-1 rounded"
                             title="Edit"
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteInstructor(instructor)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded"
+                            className="text-red-600 hover:text-red-800 p-1 rounded"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -247,26 +228,52 @@ const Instructors = () => {
               </table>
             </div>
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalCount={totalCount}
-              pageSize={pageSize}
-              onPageChange={setCurrentPage}
-            />
+            {}
+            <div className="flex items-center justify-center mt-6 space-x-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-4 w-4 text-gray-600" />
+              </button>
+
+              {[...Array(Math.ceil(totalCount / pageSize))].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                    currentPage === index + 1
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage(Math.min(Math.ceil(totalCount / pageSize), currentPage + 1))}
+                disabled={currentPage === Math.ceil(totalCount / pageSize)}
+                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="h-4 w-4 text-gray-600" />
+              </button>
+            </div>
           </>
         )}
       </div>
 
-      {/* Instructor Modal */}
+      {}
       {modalOpen && (
         <InstructorModal
           instructor={selectedInstructor}
+          mode={modalMode}
           onClose={handleModalClose}
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {}
       {deleteDialog.open && (
         <ConfirmDialog
           title="Delete Instructor"

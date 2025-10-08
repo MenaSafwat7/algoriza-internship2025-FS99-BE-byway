@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -18,12 +19,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('userToken');
     const userData = localStorage.getItem('userData');
-    
+
     if (token && userData) {
       setUser(JSON.parse(userData));
       apiService.setAuthToken(token);
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -31,18 +32,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiService.userLogin(usernameOrEmail, password);
       const { token, ...userData } = response.data;
-      
+
       localStorage.setItem('userToken', token);
       localStorage.setItem('userData', JSON.stringify(userData));
-      
+
       setUser(userData);
       apiService.setAuthToken(token);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Login failed'
       };
     }
   };
@@ -51,27 +52,34 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiService.userRegister(userData);
       const { token, ...userInfo } = response.data;
-      
+
       localStorage.setItem('userToken', token);
       localStorage.setItem('userData', JSON.stringify(userInfo));
-      
+
       setUser(userInfo);
       apiService.setAuthToken(token);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registration failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Registration failed'
       };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
-    setUser(null);
-    apiService.setAuthToken(null);
+    try {
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userData');
+      setUser(null);
+      apiService.setAuthToken(null);
+      toast.success('Logged out successfully');
+      console.log('User logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('An error occurred during logout');
+    }
   };
 
   const value = {

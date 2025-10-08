@@ -21,9 +21,6 @@ public class CourseController : ControllerBase
         _fileService = fileService;
     }
 
-    /// <summary>
-    /// Get courses with filtering, sorting, and pagination
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<PaginatedResult<CourseDto>>> GetCourses(
         [FromQuery] int page = 1,
@@ -34,7 +31,7 @@ public class CourseController : ControllerBase
         [FromQuery] int? minRating = null,
         [FromQuery] decimal? minPrice = null,
         [FromQuery] decimal? maxPrice = null,
-        [FromQuery] string sortBy = "latest") // latest, oldest, priceHigh, priceLow, rating
+        [FromQuery] string sortBy = "latest")
     {
         try
         {
@@ -44,10 +41,9 @@ public class CourseController : ControllerBase
                 .Include(c => c.Topics)
                 .AsQueryable();
 
-            // Apply filters
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(c => c.Name.Contains(search) || 
+                query = query.Where(c => c.Name.Contains(search) ||
                                         c.Description!.Contains(search) ||
                                         c.Instructor.Name.Contains(search));
             }
@@ -77,14 +73,13 @@ public class CourseController : ControllerBase
                 query = query.Where(c => c.Price <= maxPrice.Value);
             }
 
-            // Apply sorting
             query = sortBy.ToLower() switch
             {
                 "oldest" => query.OrderBy(c => c.CreatedAt),
                 "pricehigh" => query.OrderByDescending(c => c.Price),
                 "pricelow" => query.OrderBy(c => c.Price),
                 "rating" => query.OrderByDescending(c => c.Rate),
-                _ => query.OrderByDescending(c => c.CreatedAt) // latest (default)
+                _ => query.OrderByDescending(c => c.CreatedAt)
             };
 
             var totalCount = await query.CountAsync();
@@ -108,6 +103,7 @@ public class CourseController : ControllerBase
                     Rate = c.Rate,
                     Price = c.Price,
                     HasCertification = c.HasCertification,
+                    Certification = c.Certification,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt,
                     Topics = c.Topics.Select(t => new CourseTopicDto
@@ -135,9 +131,6 @@ public class CourseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get course by ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<CourseDto>> GetCourse(int id)
     {
@@ -170,6 +163,7 @@ public class CourseController : ControllerBase
                 Rate = course.Rate,
                 Price = course.Price,
                 HasCertification = course.HasCertification,
+                Certification = course.Certification,
                 CreatedAt = course.CreatedAt,
                 UpdatedAt = course.UpdatedAt,
                 Topics = course.Topics.Select(t => new CourseTopicDto
@@ -190,9 +184,6 @@ public class CourseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get top courses by rating
-    /// </summary>
     [HttpGet("top-rated")]
     public async Task<ActionResult<List<CourseDto>>> GetTopRatedCourses([FromQuery] int count = 4)
     {
@@ -220,6 +211,7 @@ public class CourseController : ControllerBase
                     Rate = c.Rate,
                     Price = c.Price,
                     HasCertification = c.HasCertification,
+                    Certification = c.Certification,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt
                 })
@@ -233,9 +225,6 @@ public class CourseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get related courses by category
-    /// </summary>
     [HttpGet("{id}/related")]
     public async Task<ActionResult<List<CourseDto>>> GetRelatedCourses(int id, [FromQuery] int count = 4)
     {
@@ -282,16 +271,26 @@ public class CourseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Create a new course (Admin only)
-    /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CourseDto>> CreateCourse([FromForm] CreateCourseDto createDto)
     {
         try
         {
-            // Validate instructor and category exist
+
+            Console.WriteLine($"CreateCourse called with:");
+            Console.WriteLine($"Name: {createDto.Name}");
+            Console.WriteLine($"CategoryId: {createDto.CategoryId}");
+            Console.WriteLine($"InstructorId: {createDto.InstructorId}");
+            Console.WriteLine($"Level: {createDto.Level}");
+            Console.WriteLine($"TotalHours: {createDto.TotalHours}");
+            Console.WriteLine($"Rate: {createDto.Rate}");
+            Console.WriteLine($"Price: {createDto.Price}");
+            Console.WriteLine($"HasCertification: {createDto.HasCertification}");
+            Console.WriteLine($"Certification: {createDto.Certification}");
+            Console.WriteLine($"TopicsJson: {createDto.TopicsJson}");
+            Console.WriteLine($"TopicsJson length: {createDto.TopicsJson?.Length ?? 0}");
+
             var instructor = await _context.Instructors.FindAsync(createDto.InstructorId);
             if (instructor == null)
             {
@@ -306,7 +305,6 @@ public class CourseController : ControllerBase
 
             string? imageUrl = null;
 
-            // Handle image upload
             if (createDto.Image != null)
             {
                 if (!_fileService.IsValidImage(createDto.Image))
@@ -329,6 +327,7 @@ public class CourseController : ControllerBase
                 Rate = createDto.Rate,
                 Price = createDto.Price,
                 HasCertification = createDto.HasCertification,
+                Certification = createDto.Certification,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -336,10 +335,41 @@ public class CourseController : ControllerBase
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
 
-            // Add topics
-            if (createDto.Topics.Any())
+            List<CreateCourseTopicDto> topics = new();
+
+            Console.WriteLine($"TopicsJson: {createDto.TopicsJson}");
+            Console.WriteLine($"Topics count: {createDto.Topics.Count}");
+
+            if (!string.IsNullOrEmpty(createDto.TopicsJson))
             {
-                var topics = createDto.Topics.Select(t => new CourseTopic
+                try
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    topics = System.Text.Json.JsonSerializer.Deserialize<List<CreateCourseTopicDto>>(createDto.TopicsJson, options) ?? new();
+                    Console.WriteLine($"Deserialized topics count: {topics.Count}");
+                    foreach (var topic in topics)
+                    {
+                        Console.WriteLine($"Topic: {topic.TopicName}, Lectures: {topic.LectureCount}, Duration: {topic.DurationMinutes}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Topics deserialization error: {ex.Message}");
+                    return BadRequest(new { message = "Invalid topics JSON format", error = ex.Message });
+                }
+            }
+            else if (createDto.Topics.Any())
+            {
+                topics = createDto.Topics.ToList();
+                Console.WriteLine($"Using direct topics, count: {topics.Count}");
+            }
+
+            if (topics.Any())
+            {
+                var courseTopics = topics.Select(t => new CourseTopic
                 {
                     CourseId = course.CourseId,
                     TopicName = t.TopicName,
@@ -348,22 +378,20 @@ public class CourseController : ControllerBase
                     Order = t.Order
                 }).ToList();
 
-                _context.CourseTopics.AddRange(topics);
+                _context.CourseTopics.AddRange(courseTopics);
                 await _context.SaveChangesAsync();
             }
 
-            // Return the created course
             return await GetCourse(course.CourseId);
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error in CreateCourse: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return StatusCode(500, new { message = "An error occurred while creating the course", error = ex.Message });
         }
     }
 
-    /// <summary>
-    /// Update a course (Admin only)
-    /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CourseDto>> UpdateCourse(int id, [FromForm] UpdateCourseDto updateDto)
@@ -379,7 +407,6 @@ public class CourseController : ControllerBase
                 return NotFound(new { message = "Course not found" });
             }
 
-            // Validate instructor and category exist
             var instructor = await _context.Instructors.FindAsync(updateDto.InstructorId);
             if (instructor == null)
             {
@@ -394,7 +421,6 @@ public class CourseController : ControllerBase
 
             string? newImageUrl = course.ImageUrl;
 
-            // Handle image upload
             if (updateDto.Image != null)
             {
                 if (!_fileService.IsValidImage(updateDto.Image))
@@ -402,14 +428,11 @@ public class CourseController : ControllerBase
                     return BadRequest(new { message = "Invalid image file. Please upload a JPG, JPEG, PNG, or GIF file under 5MB." });
                 }
 
-                // Delete old image
                 _fileService.DeleteImage(course.ImageUrl);
 
-                // Save new image
                 newImageUrl = await _fileService.SaveImageAsync(updateDto.Image, "courses");
             }
 
-            // Update course properties
             course.Name = updateDto.Name;
             course.Description = updateDto.Description;
             course.CategoryId = updateDto.CategoryId;
@@ -420,14 +443,46 @@ public class CourseController : ControllerBase
             course.Rate = updateDto.Rate;
             course.Price = updateDto.Price;
             course.HasCertification = updateDto.HasCertification;
+            course.Certification = updateDto.Certification;
             course.UpdatedAt = DateTime.UtcNow;
 
-            // Update topics
             _context.CourseTopics.RemoveRange(course.Topics);
 
-            if (updateDto.Topics.Any())
+            List<CreateCourseTopicDto> topics = new();
+
+            Console.WriteLine($"Update - TopicsJson: {updateDto.TopicsJson}");
+            Console.WriteLine($"Update - Topics count: {updateDto.Topics.Count}");
+
+            if (!string.IsNullOrEmpty(updateDto.TopicsJson))
             {
-                var topics = updateDto.Topics.Select(t => new CourseTopic
+                try
+                {
+                    var options = new System.Text.Json.JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    topics = System.Text.Json.JsonSerializer.Deserialize<List<CreateCourseTopicDto>>(updateDto.TopicsJson, options) ?? new();
+                    Console.WriteLine($"Update - Deserialized topics count: {topics.Count}");
+                    foreach (var topic in topics)
+                    {
+                        Console.WriteLine($"Update - Topic: {topic.TopicName}, Lectures: {topic.LectureCount}, Duration: {topic.DurationMinutes}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Update - Topics deserialization error: {ex.Message}");
+                    return BadRequest(new { message = "Invalid topics JSON format", error = ex.Message });
+                }
+            }
+            else if (updateDto.Topics.Any())
+            {
+                topics = updateDto.Topics.ToList();
+                Console.WriteLine($"Update - Using direct topics, count: {topics.Count}");
+            }
+
+            if (topics.Any())
+            {
+                var courseTopics = topics.Select(t => new CourseTopic
                 {
                     CourseId = course.CourseId,
                     TopicName = t.TopicName,
@@ -436,12 +491,11 @@ public class CourseController : ControllerBase
                     Order = t.Order
                 }).ToList();
 
-                _context.CourseTopics.AddRange(topics);
+                _context.CourseTopics.AddRange(courseTopics);
             }
 
             await _context.SaveChangesAsync();
 
-            // Return the updated course
             return await GetCourse(course.CourseId);
         }
         catch (Exception ex)
@@ -450,9 +504,6 @@ public class CourseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Delete a course (Admin only)
-    /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteCourse(int id)
@@ -468,13 +519,11 @@ public class CourseController : ControllerBase
                 return NotFound(new { message = "Course not found" });
             }
 
-            // Check if course has been purchased
             if (course.Purchases.Any())
             {
                 return BadRequest(new { message = "Cannot delete course. This course has been purchased by users." });
             }
 
-            // Delete image file
             _fileService.DeleteImage(course.ImageUrl);
 
             _context.Courses.Remove(course);

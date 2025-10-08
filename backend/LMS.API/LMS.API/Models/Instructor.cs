@@ -25,9 +25,8 @@ public class Instructor
     public string? ImageUrl { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Navigation properties
     public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
 }

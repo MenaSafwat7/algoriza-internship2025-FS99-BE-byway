@@ -27,9 +27,6 @@ public class CartController : ControllerBase
         return int.Parse(userIdClaim ?? "0");
     }
 
-    /// <summary>
-    /// Get user's cart with summary
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<CartSummaryDto>> GetCart()
     {
@@ -54,8 +51,8 @@ public class CartController : ControllerBase
                 .ToListAsync();
 
             var subtotal = cartItems.Sum(item => item.Price);
-            var discount = 0m; // Static as per requirements
-            var tax = subtotal * 0.15m; // 15% tax
+            var discount = 0m;
+            var tax = subtotal * 0.15m;
             var total = subtotal - discount + tax;
 
             var cartSummary = new CartSummaryDto
@@ -75,9 +72,6 @@ public class CartController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Add course to cart
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> AddToCart([FromBody] int courseId)
     {
@@ -85,14 +79,12 @@ public class CartController : ControllerBase
         {
             var userId = GetCurrentUserId();
 
-            // Check if course exists
             var course = await _context.Courses.FindAsync(courseId);
             if (course == null)
             {
                 return NotFound(new { message = "Course not found" });
             }
 
-            // Check if user already purchased this course
             var existingPurchase = await _context.Purchases
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.CourseId == courseId);
 
@@ -101,7 +93,6 @@ public class CartController : ControllerBase
                 return BadRequest(new { message = "You have already purchased this course" });
             }
 
-            // Check if course is already in cart
             var existingCartItem = await _context.CartItems
                 .FirstOrDefaultAsync(ci => ci.UserId == userId && ci.CourseId == courseId);
 
@@ -110,7 +101,6 @@ public class CartController : ControllerBase
                 return BadRequest(new { message = "Course is already in your cart" });
             }
 
-            // Add to cart
             var cartItem = new CartItem
             {
                 UserId = userId,
@@ -129,9 +119,6 @@ public class CartController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Remove course from cart
-    /// </summary>
     [HttpDelete("{courseId}")]
     public async Task<IActionResult> RemoveFromCart(int courseId)
     {
@@ -158,9 +145,6 @@ public class CartController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Clear entire cart
-    /// </summary>
     [HttpDelete]
     public async Task<IActionResult> ClearCart()
     {

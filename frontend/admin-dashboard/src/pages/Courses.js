@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Eye, Edit, Trash2, Star, Filter } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, Star, Filter, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import CourseModal from '../components/CourseModal';
 import ConfirmDialog from '../components/ConfirmDialog';
-import Pagination from '../components/Pagination';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -16,6 +15,7 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [modalMode, setModalMode] = useState('add');
   const [deleteDialog, setDeleteDialog] = useState({ open: false, course: null });
   const pageSize = 12;
 
@@ -67,16 +67,19 @@ const Courses = () => {
 
   const handleAddCourse = () => {
     setSelectedCourse(null);
+    setModalMode('add');
     setModalOpen(true);
   };
 
   const handleEditCourse = (course) => {
     setSelectedCourse(course);
+    setModalMode('edit');
     setModalOpen(true);
   };
 
   const handleViewCourse = (course) => {
     setSelectedCourse(course);
+    setModalMode('view');
     setModalOpen(true);
   };
 
@@ -98,6 +101,7 @@ const Courses = () => {
   const handleModalClose = (shouldRefresh = false) => {
     setModalOpen(false);
     setSelectedCourse(null);
+    setModalMode('add');
     if (shouldRefresh) {
       fetchCourses();
     }
@@ -105,9 +109,9 @@ const Courses = () => {
 
   const getLevelBadgeColor = (level) => {
     const colors = {
-      1: 'bg-green-100 text-green-800', // Beginner
-      2: 'bg-yellow-100 text-yellow-800', // Intermediate
-      3: 'bg-red-100 text-red-800' // Advanced
+      1: 'bg-green-100 text-green-800',
+      2: 'bg-yellow-100 text-yellow-800',
+      3: 'bg-red-100 text-red-800'
     };
     return colors[level] || 'bg-gray-100 text-gray-800';
   };
@@ -133,66 +137,77 @@ const Courses = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Courses Management</h1>
-          <p className="mt-2 text-gray-600">
-            Total Courses: {totalCount}
-          </p>
+    <div className="bg-gray-50 min-h-screen p-6">
+      {}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
+          <div className="relative">
+            <div className="w-6 h-6 bg-gray-300 rounded-full"></div>
+          </div>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <p className="text-sm text-gray-500">Dashboard / Courses</p>
+      </div>
+
+      {}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        {}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-xl font-semibold text-gray-900">Courses</h2>
+            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+              {totalCount}
+            </span>
+          </div>
+        </div>
+
+        {}
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={handleAddCourse}
-            className="btn-primary flex items-center"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            Add New Course
+            <Plus className="h-4 w-4" />
+            <span>Add Course</span>
           </button>
-        </div>
-      </div>
 
-      {/* Filters */}
-      <div className="card p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={handleCategoryFilter}
+                className="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category.categoryId} value={category.categoryId}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
             </div>
-            <input
-              type="text"
-              placeholder="Search by course name..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="input-field pl-10"
-            />
-          </div>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Filter className="h-5 w-5 text-gray-400" />
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search for Courses"
+                value={searchTerm}
+                onChange={handleSearch}
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+              />
             </div>
-            <select
-              value={selectedCategory}
-              onChange={handleCategoryFilter}
-              className="input-field pl-10 pr-10"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category.categoryId} value={category.categoryId}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <Filter className="h-5 w-5 text-gray-600" />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Courses Grid */}
-      <div className="card">
+        {}
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : courses.length === 0 ? (
           <div className="text-center py-12">
@@ -200,16 +215,17 @@ const Courses = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               {courses.map((course) => (
                 <div
                   key={course.courseId}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200"
                 >
-                  <div className="aspect-w-16 aspect-h-9">
+                  {}
+                  <div className="relative">
                     {course.imageUrl ? (
                       <img
-                        src={`http://localhost:5000${course.imageUrl}`}
+                        src={`http://localhost:5045${course.imageUrl}`}
                         alt={course.name}
                         className="w-full h-48 object-cover"
                       />
@@ -218,99 +234,116 @@ const Courses = () => {
                         <span className="text-gray-400">No Image</span>
                       </div>
                     )}
-                  </div>
-                  
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelBadgeColor(course.level)}`}>
-                        {getLevelText(course.level)}
-                      </span>
-                      <span className="text-sm text-gray-500">
+                    {}
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
                         {course.categoryName}
                       </span>
                     </div>
-                    
+                  </div>
+
+                  <div className="p-4">
+                    {}
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                       {course.name}
                     </h3>
-                    
+
+                    {}
                     <p className="text-sm text-gray-600 mb-2">
                       By {course.instructorName}
                     </p>
-                    
+
+                    {}
                     <div className="flex items-center mb-3">
                       {renderStars(course.rate)}
-                      <span className="ml-2 text-sm text-gray-600">
-                        ({course.rate})
-                      </span>
                     </div>
-                    
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-lg font-bold text-primary-600">
+
+                    {}
+                    <p className="text-xs text-gray-500 mb-3">
+                      {course.totalHours} Total Hours. {course.totalLectures || 0} Lectures. {getLevelText(course.level)}
+                    </p>
+
+                    {}
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-gray-900">
                         ${course.price}
                       </span>
-                      <span className="text-sm text-gray-500">
-                        {course.totalHours}h
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewCourse(course)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          className="text-gray-400 hover:text-gray-600 p-1 rounded"
                           title="View"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleEditCourse(course)}
-                          className="text-green-600 hover:text-green-900 p-1 rounded"
+                          className="text-gray-400 hover:text-gray-600 p-1 rounded"
                           title="Edit"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteCourse(course)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded"
+                          className="text-gray-400 hover:text-gray-600 p-1 rounded"
                           title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      
-                      {course.hasCertification && (
-                        <span className="text-xs text-green-600 font-medium">
-                          Certificate
-                        </span>
-                      )}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalCount={totalCount}
-              pageSize={pageSize}
-              onPageChange={setCurrentPage}
-            />
+            {}
+            <div className="flex items-center justify-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-4 w-4 text-gray-600" />
+              </button>
+
+              {[...Array(Math.ceil(totalCount / pageSize))].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                    currentPage === index + 1
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage(Math.min(Math.ceil(totalCount / pageSize), currentPage + 1))}
+                disabled={currentPage === Math.ceil(totalCount / pageSize)}
+                className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="h-4 w-4 text-gray-600" />
+              </button>
+            </div>
           </>
         )}
       </div>
 
-      {/* Course Modal */}
+      {}
       {modalOpen && (
         <CourseModal
           course={selectedCourse}
           categories={categories}
           onClose={handleModalClose}
+          mode={modalMode}
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {}
       {deleteDialog.open && (
         <ConfirmDialog
           title="Delete Course"

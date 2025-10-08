@@ -30,16 +30,14 @@ class ApiService {
     }
   }
 
-  // Auth endpoints
   userLogin(usernameOrEmail, password) {
-    return this.api.post('/users/login', { usernameOrEmail, password });
+    return this.api.post('/User/login', { usernameOrEmail, password });
   }
 
   userRegister(userData) {
-    return this.api.post('/users/register', userData);
+    return this.api.post('/User/register', userData);
   }
 
-  // Course endpoints
   getCourses(params = {}) {
     return this.api.get('/course', { params });
   }
@@ -56,12 +54,10 @@ class ApiService {
     return this.api.get(`/course/${id}/related`, { params: { count } });
   }
 
-  // Category endpoints
   getCategories() {
     return this.api.get('/category');
   }
 
-  // Cart endpoints
   getCart() {
     return this.api.get('/cart');
   }
@@ -80,7 +76,6 @@ class ApiService {
     return this.api.delete('/cart');
   }
 
-  // Purchase endpoints
   processPurchase(purchaseData) {
     return this.api.post('/purchase', purchaseData);
   }

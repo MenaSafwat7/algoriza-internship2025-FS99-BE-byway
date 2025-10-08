@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
   const totalPages = Math.ceil(totalCount / pageSize);
-  
+
   if (totalPages <= 1) return null;
 
   const getVisiblePages = () => {
@@ -11,8 +11,8 @@ const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
     const range = [];
     const rangeWithDots = [];
 
-    for (let i = Math.max(2, currentPage - delta); 
-         i <= Math.min(totalPages - 1, currentPage + delta); 
+    for (let i = Math.max(2, currentPage - delta);
+         i <= Math.min(totalPages - 1, currentPage + delta);
          i++) {
       range.push(i);
     }
@@ -54,7 +54,7 @@ const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
           Next
         </button>
       </div>
-      
+
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-gray-700">
@@ -71,7 +71,7 @@ const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
             results
           </p>
         </div>
-        
+
         <div>
           <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
             <button
@@ -81,7 +81,7 @@ const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            
+
             {visiblePages.map((page, index) => {
               if (page === '...') {
                 return (
@@ -93,7 +93,7 @@ const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
                   </span>
                 );
               }
-              
+
               return (
                 <button
                   key={index}
@@ -108,7 +108,7 @@ const Pagination = ({ currentPage, totalCount, pageSize, onPageChange }) => {
                 </button>
               );
             })}
-            
+
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}

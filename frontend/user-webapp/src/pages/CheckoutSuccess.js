@@ -1,258 +1,152 @@
 import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { CheckCircle, Download, BookOpen, Award, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { useNavigate } from 'react-router-dom';
+import { Check } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
 
 const CheckoutSuccess = () => {
-  const location = useLocation();
-  const orderDetails = location.state?.orderDetails;
+  const navigate = useNavigate();
+  const { clearCart, refreshCart } = useCart();
 
   useEffect(() => {
-    // Trigger confetti animation
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
 
-    const randomInRange = (min, max) => Math.random() * (max - min) + min;
+    const ensureCartCleared = async () => {
+      try {
+        console.log('Verifying cart is cleared after purchase...');
 
-    const interval = setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
+        await clearCart();
 
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-        return;
+        await refreshCart();
+        console.log('Cart successfully cleared and refreshed');
+      } catch (error) {
+        console.error('Error ensuring cart is cleared:', error);
       }
+    };
 
-      const particleCount = 50 * (timeLeft / duration);
+    ensureCartCleared();
+  }, [clearCart, refreshCart]);
 
-      confetti({
-        particleCount,
-        startVelocity: 30,
-        spread: 360,
-        origin: {
-          x: randomInRange(0.1, 0.3),
-          y: Math.random() - 0.2
-        }
-      });
-
-      confetti({
-        particleCount,
-        startVelocity: 30,
-        spread: 360,
-        origin: {
-          x: randomInRange(0.7, 0.9),
-          y: Math.random() - 0.2
-        }
-      });
-    }, 250);
-
-    return () => clearInterval(interval);
-  }, []);
+  const handleBackToHome = () => {
+    navigate('/');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container-custom py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-3xl mx-auto text-center"
-        >
-          {/* Success Icon */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-8"
+    <div className="min-h-screen bg-white flex flex-col">
+      {}
+      <div className="border-b border-gray-200 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-teal-400 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">B</span>
+              </div>
+              <span className="ml-2 text-xl font-semibold text-gray-900">Byway</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {}
+      <div className="flex-1 flex items-center justify-center py-16 px-4">
+        <div className="text-center max-w-md mx-auto">
+
+          {}
+          <div className="mb-8 flex justify-center">
+            <div className="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+              <Check className="w-20 h-20 text-white" strokeWidth={3} />
+            </div>
+          </div>
+
+          {}
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
+            Purchase Complete
+          </h1>
+
+          <p className="text-gray-600 mb-8 text-lg">
+            You Will Receive a confirmation email soon!
+          </p>
+
+          {}
+          <button
+            onClick={handleBackToHome}
+            className="bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors inline-block"
           >
-            <CheckCircle className="h-12 w-12 text-green-600" />
-          </motion.div>
+            Back to Home
+          </button>
+        </div>
+      </div>
 
-          {/* Success Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              🎉 Purchase Complete!
-            </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Congratulations! Your payment was successful and you now have access to your courses.
-            </p>
-          </motion.div>
+      {}
+      <footer className="bg-gray-900 text-white py-12 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {}
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-teal-400 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">B</span>
+                </div>
+                <span className="ml-2 text-xl font-semibold">Byway</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Empowering learners through accessible and engaging online education.
+              </p>
+            </div>
 
-          {/* Order Details */}
-          {orderDetails && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="card p-8 mb-8 text-left"
-            >
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-                Order Summary
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="text-center p-4 bg-primary-50 rounded-lg">
-                  <BookOpen className="h-8 w-8 text-primary-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-primary-600">
-                    {orderDetails.coursesCount}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Course{orderDetails.coursesCount !== 1 ? 's' : ''} Purchased
-                  </div>
-                </div>
-                
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <Award className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-green-600">
-                    {orderDetails.coursesCount}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Certificate{orderDetails.coursesCount !== 1 ? 's' : ''} Available
-                  </div>
-                </div>
-                
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <CheckCircle className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-600">
-                    ${orderDetails.total.toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Total Paid
-                  </div>
-                </div>
-              </div>
+            {}
+            <div>
+              <h3 className="font-semibold mb-4">Get Help</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-white">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white">Latest Articles</a></li>
+                <li><a href="#" className="hover:text-white">FAQ</a></li>
+              </ul>
+            </div>
 
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Your Courses:
-                </h3>
-                <div className="space-y-3">
-                  {orderDetails.courses.map((course) => (
-                    <div key={course.courseId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-8 bg-primary-100 rounded flex items-center justify-center">
-                          <BookOpen className="h-4 w-4 text-primary-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{course.courseName}</h4>
-                          <p className="text-sm text-gray-600">By {course.instructorName}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900">${course.price.toFixed(2)}</div>
-                        <div className="text-sm text-green-600">✓ Access Granted</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
+            {}
+            <div>
+              <h3 className="font-semibold mb-4">Programs</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-white">Art & Design</a></li>
+                <li><a href="#" className="hover:text-white">Business</a></li>
+                <li><a href="#" className="hover:text-white">IT & Software</a></li>
+                <li><a href="#" className="hover:text-white">Languages</a></li>
+                <li><a href="#" className="hover:text-white">Programming</a></li>
+              </ul>
+            </div>
 
-          {/* Next Steps */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            className="card p-8 mb-8"
-          >
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              What's Next?
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div className="p-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Start Learning</h3>
-                <p className="text-gray-600 text-sm">
-                  Access your courses immediately and begin your learning journey.
-                </p>
-              </div>
-              
-              <div className="p-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Download className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Download Resources</h3>
-                <p className="text-gray-600 text-sm">
-                  Get access to downloadable materials and course resources.
-                </p>
-              </div>
-              
-              <div className="p-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="h-6 w-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Earn Certificate</h3>
-                <p className="text-gray-600 text-sm">
-                  Complete courses to earn your certificates of completion.
-                </p>
+            {}
+            <div>
+              <h3 className="font-semibold mb-4">Contact Us</h3>
+              <p className="text-gray-400 text-sm mb-2">
+                Address: 123 Main Street, Anytown, CA 12345
+              </p>
+              <p className="text-gray-400 text-sm mb-4">
+                Tel: +(123) 456-7890
+              </p>
+              <p className="text-gray-400 text-sm mb-4">
+                Mail: byway@webmail.com
+              </p>
+              <div className="flex space-x-3">
+                <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700">
+                  <span className="text-sm">f</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700">
+                  <span className="text-sm">in</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700">
+                  <span className="text-sm">ig</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700">
+                  <span className="text-sm">tw</span>
+                </a>
+                <a href="#" className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center hover:bg-gray-700">
+                  <span className="text-sm">yt</span>
+                </a>
               </div>
             </div>
-          </motion.div>
-
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0, duration: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <button
-              onClick={() => toast.info('My Courses feature coming soon!')}
-              className="btn-primary flex items-center justify-center"
-            >
-              <BookOpen className="h-5 w-5 mr-2" />
-              Go to My Courses
-            </button>
-            
-            <Link
-              to="/courses"
-              className="btn-secondary flex items-center justify-center"
-            >
-              Browse More Courses
-              <ArrowRight className="h-5 w-5 ml-2" />
-            </Link>
-          </motion.div>
-
-          {/* Additional Info */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2, duration: 0.6 }}
-            className="mt-12 p-6 bg-blue-50 rounded-lg"
-          >
-            <h3 className="font-semibold text-blue-900 mb-2">
-              📧 Confirmation Email Sent
-            </h3>
-            <p className="text-blue-800 text-sm">
-              We've sent a confirmation email with your purchase details and course access information. 
-              If you don't see it in your inbox, please check your spam folder.
-            </p>
-          </motion.div>
-
-          {/* Support */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.4, duration: 0.6 }}
-            className="mt-8 text-center"
-          >
-            <p className="text-gray-600 text-sm">
-              Need help? Contact our support team at{' '}
-              <a href="mailto:support@lms.com" className="text-primary-600 hover:text-primary-700">
-                support@lms.com
-              </a>
-            </p>
-          </motion.div>
-        </motion.div>
-      </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

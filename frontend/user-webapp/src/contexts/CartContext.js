@@ -28,7 +28,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const response = await apiService.getCart();

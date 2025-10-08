@@ -18,12 +18,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     const userData = localStorage.getItem('adminUser');
-    
+
     if (token && userData) {
       setUser(JSON.parse(userData));
       apiService.setAuthToken(token);
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -31,18 +31,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiService.adminLogin(email, password);
       const { token, ...userData } = response.data;
-      
+
       localStorage.setItem('adminToken', token);
       localStorage.setItem('adminUser', JSON.stringify(userData));
-      
+
       setUser(userData);
       apiService.setAuthToken(token);
-      
+
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login failed' 
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Login failed'
       };
     }
   };

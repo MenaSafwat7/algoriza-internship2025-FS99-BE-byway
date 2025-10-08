@@ -25,7 +25,6 @@ public class Purchase
     [Column(TypeName = "decimal(10,2)")]
     public decimal Discount { get; set; }
 
-    // Navigation properties
     [ForeignKey("UserId")]
     public virtual User User { get; set; } = null!;
 

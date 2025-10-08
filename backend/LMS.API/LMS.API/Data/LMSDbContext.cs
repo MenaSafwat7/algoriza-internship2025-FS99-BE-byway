@@ -18,11 +18,15 @@ public class LMSDbContext : DbContext
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<Purchase> Purchases { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure unique constraints
         modelBuilder.Entity<Admin>()
             .HasIndex(a => a.Email)
             .IsUnique();
@@ -35,7 +39,6 @@ public class LMSDbContext : DbContext
             .HasIndex(u => u.Email)
             .IsUnique();
 
-        // Configure relationships
         modelBuilder.Entity<Course>()
             .HasOne(c => c.Category)
             .WithMany(cat => cat.Courses)
@@ -78,24 +81,22 @@ public class LMSDbContext : DbContext
             .HasForeignKey(p => p.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Seed initial data
         SeedData(modelBuilder);
     }
 
     private void SeedData(ModelBuilder modelBuilder)
     {
-        // Seed Admin
+
         modelBuilder.Entity<Admin>().HasData(
             new Admin
             {
                 AdminId = 1,
                 Email = "admin@lms.com",
-                Password = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                Password = "$2a$11$U8147i2JYN.raf8LpGLmZOQUDrWWTfo84dwleldmRvw8OrUmVihKS",
                 Address = "123 Admin Street, Admin City"
             }
         );
 
-        // Seed Categories
         modelBuilder.Entity<Category>().HasData(
             new Category { CategoryId = 1, Name = "Full Stack" },
             new Category { CategoryId = 2, Name = "Backend" },
@@ -103,7 +104,8 @@ public class LMSDbContext : DbContext
             new Category { CategoryId = 4, Name = "UI-UX Design" }
         );
 
-        // Seed Sample Instructors
+        var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        
         modelBuilder.Entity<Instructor>().HasData(
             new Instructor
             {
@@ -113,8 +115,8 @@ public class LMSDbContext : DbContext
                 Rate = 5,
                 Description = "Experienced full-stack developer with 8+ years in web development.",
                 ImageUrl = "/images/instructors/john-smith.jpg",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Instructor
             {
@@ -124,8 +126,8 @@ public class LMSDbContext : DbContext
                 Rate = 4,
                 Description = "Frontend specialist focusing on React and modern JavaScript frameworks.",
                 ImageUrl = "/images/instructors/sarah-johnson.jpg",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Instructor
             {
@@ -135,8 +137,8 @@ public class LMSDbContext : DbContext
                 Rate = 5,
                 Description = "Backend expert specializing in .NET Core and cloud architectures.",
                 ImageUrl = "/images/instructors/michael-brown.jpg",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             },
             new Instructor
             {
@@ -146,8 +148,8 @@ public class LMSDbContext : DbContext
                 Rate = 4,
                 Description = "Creative UI/UX designer with expertise in user-centered design principles.",
                 ImageUrl = "/images/instructors/emily-davis.jpg",
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = seedDate,
+                UpdatedAt = seedDate
             }
         );
     }

@@ -21,7 +21,6 @@ public class CourseTopic
 
     public int Order { get; set; }
 
-    // Navigation properties
     [ForeignKey("CourseId")]
     public virtual Course Course { get; set; } = null!;
 }

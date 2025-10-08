@@ -37,11 +37,13 @@ public class Course
 
     public bool HasCertification { get; set; }
 
+    [StringLength(2000)]
+    public string? Certification { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    // Navigation properties
     [ForeignKey("CategoryId")]
     public virtual Category Category { get; set; } = null!;
 

@@ -15,6 +15,5 @@ public class Category
     [NotMapped]
     public int CourseCount => Courses?.Count ?? 0;
 
-    // Navigation properties
     public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
 }

@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  Star, 
-  Clock, 
-  Users, 
-  Award, 
-  BookOpen, 
-  Play, 
+import {
+  Star,
+  Clock,
+  Users,
+  Award,
+  BookOpen,
+  Play,
   CheckCircle,
   ArrowLeft,
-  ShoppingCart
+  ShoppingCart,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Share2
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { useCart } from '../contexts/CartContext';
@@ -20,7 +24,7 @@ const CourseDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { addToCart, isInCart } = useCart();
-  
+
   const [course, setCourse] = useState(null);
   const [relatedCourses, setRelatedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +64,7 @@ const CourseDetail = () => {
       toast.error('Please login to add courses to cart');
       return;
     }
-    
+
     await addToCart(parseInt(id));
   };
 
@@ -69,10 +73,10 @@ const CourseDetail = () => {
       toast.error('Please login to purchase courses');
       return;
     }
-    
+
     const result = await addToCart(parseInt(id));
     if (result.success) {
-      // Redirect to checkout
+
       window.location.href = '/checkout';
     }
   };
@@ -90,9 +94,9 @@ const CourseDetail = () => {
 
   const getLevelBadgeColor = (level) => {
     const colors = {
-      1: 'bg-green-100 text-green-800', // Beginner
-      2: 'bg-yellow-100 text-yellow-800', // Intermediate
-      3: 'bg-red-100 text-red-800' // Advanced
+      1: 'bg-green-100 text-green-800',
+      2: 'bg-yellow-100 text-yellow-800',
+      3: 'bg-red-100 text-red-800'
     };
     return colors[level] || 'bg-gray-100 text-gray-800';
   };
@@ -163,29 +167,26 @@ const CourseDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
+    <div className="min-h-screen bg-white">
+      {}
       <div className="bg-white border-b border-gray-200">
-        <div className="container-custom py-4">
-          <div className="flex items-center space-x-2 text-sm">
-            <Link to="/courses" className="text-primary-600 hover:text-primary-700 flex items-center">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Courses
-            </Link>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-600">{course.categoryName}</span>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900 font-medium">{course.name}</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <Link to="/" className="text-blue-600 hover:text-blue-700">Home</Link>
+            <span>/</span>
+            <Link to="/courses" className="text-blue-600 hover:text-blue-700">Courses</Link>
+            <span>/</span>
+            <span className="text-gray-900">{course.name}</span>
           </div>
         </div>
       </div>
 
-      <div className="container-custom py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
+          {}
           <div className="lg:col-span-2 space-y-8">
-            {/* Course Header */}
-            <div className="card p-6">
+            {}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="md:w-80 flex-shrink-0">
                   {course.imageUrl ? (
@@ -200,66 +201,64 @@ const CourseDetail = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getLevelBadgeColor(course.level)}`}>
-                      {getLevelText(course.level)}
-                    </span>
-                    <span className="text-sm text-primary-600 font-medium">
-                      {course.categoryName}
-                    </span>
-                  </div>
-                  
                   <h1 className="text-3xl font-bold text-gray-900 mb-4">
                     {course.name}
                   </h1>
-                  
+
                   <p className="text-gray-600 mb-4">
-                    By <span className="font-medium text-gray-900">{course.instructorName}</span>
+                    {course.description || 'No description available for this course.'}
                   </p>
-                  
-                  <div className="flex items-center gap-6 mb-6">
+
+                  <div className="flex items-center gap-6 mb-4">
                     <div className="flex items-center">
                       {renderStars(course.rate)}
                       <span className="ml-2 text-sm text-gray-600">
-                        ({course.rate}.0 rating)
+                        {course.rate}.0 (20 Reviews)
                       </span>
                     </div>
-                    
-                    <div className="flex items-center text-gray-600">
-                      <Users className="h-4 w-4 mr-1" />
-                      <span className="text-sm">1,234 students</span>
-                    </div>
-                    
-                    <div className="flex items-center text-gray-600">
-                      <Clock className="h-4 w-4 mr-1" />
-                      <span className="text-sm">{course.totalHours} hours</span>
-                    </div>
+
+                    <p className="text-sm text-gray-600">
+                      Created by <Link to="#" className="text-blue-600 hover:text-blue-700">{course.instructorName}</Link>
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <span className="text-3xl font-bold text-primary-600">
+
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="text-3xl font-bold text-gray-900">
                       ${course.price}
                     </span>
-                    {course.hasCertification && (
-                      <div className="flex items-center text-green-600">
-                        <Award className="h-5 w-5 mr-1" />
-                        <span className="text-sm font-medium">Certificate included</span>
-                      </div>
-                    )}
+                    <button className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                      Add to Cart
+                    </button>
+                  </div>
+
+                  {}
+                  <div className="flex items-center space-x-3">
+                    <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+                      <Facebook className="h-4 w-4 text-gray-600" />
+                    </button>
+                    <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+                      <Twitter className="h-4 w-4 text-gray-600" />
+                    </button>
+                    <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+                      <Linkedin className="h-4 w-4 text-gray-600" />
+                    </button>
+                    <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors">
+                      <Share2 className="h-4 w-4 text-gray-600" />
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Tabs */}
-            <div className="card">
+            {}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="border-b border-gray-200">
                 <nav className="flex space-x-8 px-6">
                   {[
-                    { id: 'overview', label: 'Overview' },
-                    { id: 'content', label: 'Course Content' },
+                    { id: 'description', label: 'Description' },
+                    { id: 'content', label: 'Content' },
                     { id: 'reviews', label: 'Reviews' }
                   ].map((tab) => (
                     <button
@@ -267,7 +266,7 @@ const CourseDetail = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`py-4 px-2 border-b-2 font-medium text-sm ${
                         activeTab === tab.id
-                          ? 'border-primary-500 text-primary-600'
+                          ? 'border-blue-500 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
@@ -278,7 +277,7 @@ const CourseDetail = () => {
               </div>
 
               <div className="p-6">
-                {activeTab === 'overview' && (
+                {activeTab === 'description' && (
                   <div className="space-y-6">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">
@@ -288,26 +287,71 @@ const CourseDetail = () => {
                         {course.description || 'No description available for this course.'}
                       </p>
                     </div>
-                    
+
+                    {course.certification && (
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                          Certification
+                        </h3>
+                        <p className="text-gray-600 leading-relaxed">
+                          {course.certification}
+                        </p>
+                      </div>
+                    )}
+
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                        What you'll learn
+                        Instructor
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {[
-                          'Master the fundamentals and advanced concepts',
-                          'Build real-world projects from scratch',
-                          'Learn industry best practices',
-                          'Get hands-on experience with tools',
-                          'Understand core principles and patterns',
-                          'Prepare for technical interviews'
-                        ].map((item, index) => (
-                          <div key={index} className="flex items-start">
-                            <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700">{item}</span>
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-gray-300 rounded-full mr-4"></div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">{course.instructorName}</h4>
+                          <p className="text-sm text-gray-600">Expert Instructor</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                        Content
+                      </h3>
+                      <div className="space-y-2">
+                        {course.topics && course.topics.map((topic, index) => (
+                          <div key={topic.topicId} className="flex items-center justify-between py-2">
+                            <span className="text-gray-700">{topic.topicName}</span>
+                            <div className="text-sm text-gray-600">
+                              {topic.lectureCount} Lecture numbers • {topic.durationMinutes} Time
+                            </div>
                           </div>
                         ))}
                       </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                        Elements of User Experience
+                      </h3>
+                      <ul className="space-y-2 text-gray-600">
+                        <li>• User Research and Analysis</li>
+                        <li>• Information Architecture</li>
+                        <li>• Interaction Design</li>
+                        <li>• Visual Design Principles</li>
+                        <li>• Usability Testing</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                        Visual Design Principles
+                      </h3>
+                      <ul className="space-y-2 text-gray-600">
+                        <li>• Color Theory and Application</li>
+                        <li>• Typography and Hierarchy</li>
+                        <li>• Layout and Composition</li>
+                        <li>• Brand Identity Design</li>
+                        <li>• Responsive Design</li>
+                      </ul>
                     </div>
                   </div>
                 )}
@@ -322,7 +366,7 @@ const CourseDetail = () => {
                         {course.topics?.length || 0} sections • {calculateTotalLectures(course.topics)} lectures • {calculateTotalDuration(course.topics)} total length
                       </div>
                     </div>
-                    
+
                     {course.topics && course.topics.length > 0 ? (
                       <div className="space-y-3">
                         {course.topics.map((topic, index) => (
@@ -365,25 +409,28 @@ const CourseDetail = () => {
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-gray-900">
-                        Student Reviews
+                        Learner Reviews
                       </h3>
                       <div className="flex items-center">
                         {renderStars(course.rate)}
                         <span className="ml-2 text-sm text-gray-600">
-                          {course.rate}.0 out of 5 ({reviews.length} reviews)
+                          {course.rate}.0 (20 Reviews)
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {reviews.map((review) => (
                         <div key={review.id} className="border-b border-gray-200 pb-4 last:border-b-0">
                           <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h4 className="font-medium text-gray-900">{review.name}</h4>
-                              <div className="flex items-center mt-1">
-                                {renderStars(review.rating)}
-                                <span className="ml-2 text-sm text-gray-500">{review.date}</span>
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                              <div>
+                                <h4 className="font-medium text-gray-900">{review.name}</h4>
+                                <div className="flex items-center mt-1">
+                                  {renderStars(review.rating)}
+                                  <span className="ml-2 text-sm text-gray-500">{review.date}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -391,40 +438,46 @@ const CourseDetail = () => {
                         </div>
                       ))}
                     </div>
+
+                    <div className="text-center">
+                      <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        View All Reviews
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
+          {}
           <div className="lg:col-span-1">
             <div className="sticky top-6 space-y-6">
-              {/* Purchase Card */}
-              <div className="card p-6">
+              {}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-primary-600 mb-2">
+                  <div className="text-3xl font-bold text-gray-900 mb-2">
                     ${course.price}
                   </div>
                   <p className="text-gray-600">One-time payment</p>
                 </div>
-                
+
                 <div className="space-y-3 mb-6">
                   {isInCart(course.courseId) ? (
-                    <Link to="/cart" className="w-full btn-primary text-center block">
+                    <Link to="/cart" className="w-full bg-gray-800 text-white text-center block py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors">
                       Go to Cart
                     </Link>
                   ) : (
                     <>
                       <button
                         onClick={handleBuyNow}
-                        className="w-full btn-primary"
+                        className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors"
                       >
                         Buy Now
                       </button>
                       <button
                         onClick={handleAddToCart}
-                        className="w-full btn-secondary flex items-center justify-center"
+                        className="w-full bg-gray-800 text-white py-3 px-4 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center"
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Add to Cart
@@ -432,11 +485,11 @@ const CourseDetail = () => {
                     </>
                   )}
                 </div>
-                
+
                 <div className="text-center text-sm text-gray-600 mb-4">
                   30-day money-back guarantee
                 </div>
-                
+
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center">
                     <Clock className="h-4 w-4 mr-3 text-gray-400" />
@@ -458,36 +511,23 @@ const CourseDetail = () => {
                   )}
                 </div>
               </div>
-
-              {/* Instructor Card */}
-              <div className="card p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  About the Instructor
-                </h3>
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full mr-3"></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">{course.instructorName}</h4>
-                    <p className="text-sm text-gray-600">Expert Instructor</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">
-                  Professional developer with years of experience in the industry.
-                </p>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Related Courses */}
+        {}
         {relatedCourses.length > 0 && (
           <div className="mt-16">
             <h2 className="text-2xl font-bold text-gray-900 mb-8">
-              More courses like this
+              More Courses Like This
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedCourses.map((relatedCourse) => (
-                <div key={relatedCourse.courseId} className="course-card">
+                <Link
+                  key={relatedCourse.courseId}
+                  to={`/courses/${relatedCourse.courseId}`}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 block"
+                >
                   <div className="aspect-w-16 aspect-h-9">
                     {relatedCourse.imageUrl ? (
                       <img
@@ -501,7 +541,7 @@ const CourseDetail = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
                       {relatedCourse.name}
@@ -516,18 +556,12 @@ const CourseDetail = () => {
                           ({relatedCourse.rate}.0)
                         </span>
                       </div>
-                      <span className="font-bold text-primary-600">
+                      <span className="font-bold text-gray-900">
                         ${relatedCourse.price}
                       </span>
                     </div>
-                    <Link
-                      to={`/courses/${relatedCourse.courseId}`}
-                      className="mt-3 block btn-primary text-center text-sm py-2"
-                    >
-                      View Course
-                    </Link>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

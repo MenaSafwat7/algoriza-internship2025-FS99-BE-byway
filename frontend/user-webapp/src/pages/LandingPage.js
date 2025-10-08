@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, Star, Users, BookOpen, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Play, Star, Users, BookOpen, Award, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { apiService } from '../services/api';
 import { motion } from 'framer-motion';
+import AnimatedCounter from '../components/AnimatedCounter';
 
 const LandingPage = () => {
   const [categories, setCategories] = useState([]);
   const [topCourses, setTopCourses] = useState([]);
-  const [coursesCount, setCoursesCount] = useState(0);
-  const [animatedCount, setAnimatedCount] = useState(0);
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (coursesCount > 0) {
-      animateCounter();
-    }
-  }, [coursesCount]);
 
   const fetchData = async () => {
     try {
@@ -26,39 +19,18 @@ const LandingPage = () => {
         apiService.getCategories(),
         apiService.getTopRatedCourses(4)
       ]);
-      
+
       setCategories(categoriesRes.data);
       setTopCourses(coursesRes.data);
-      
-      // Calculate total courses from categories
-      const totalCourses = categoriesRes.data.reduce((sum, cat) => sum + cat.courseCount, 0);
-      setCoursesCount(totalCourses);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     }
   };
 
-  const animateCounter = () => {
-    const target = Math.min(coursesCount, 2400); // Cap at 2400 as per requirements
-    const duration = 2000; // 2 seconds
-    const increment = target / (duration / 50);
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        setAnimatedCount(target);
-        clearInterval(timer);
-      } else {
-        setAnimatedCount(Math.floor(current));
-      }
-    }, 50);
-  };
-
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "Frontend Developer",
+      name: "Julia Doe",
+      role: "Student",
       image: "/api/placeholder/64/64",
       rating: 5,
       comment: "The courses here are incredibly well-structured. I went from beginner to landing my first developer job in just 6 months!"
@@ -81,25 +53,39 @@ const LandingPage = () => {
 
   const instructors = [
     {
-      name: "John Smith",
-      role: "Full Stack Developer",
+      name: "Ronald Richards",
+      role: "UI/UX Designer",
       image: "/api/placeholder/100/100",
-      experience: "8+ years",
-      courses: 12
+      rating: 5,
+      students: 250
     },
     {
       name: "Sarah Wilson",
-      role: "UI/UX Designer",
+      role: "Frontend Developer",
       image: "/api/placeholder/100/100",
-      experience: "6+ years",
-      courses: 8
+      rating: 5,
+      students: 180
     },
     {
       name: "David Brown",
       role: "Backend Specialist",
       image: "/api/placeholder/100/100",
-      experience: "10+ years",
-      courses: 15
+      rating: 5,
+      students: 320
+    },
+    {
+      name: "Lisa Johnson",
+      role: "Full Stack Developer",
+      image: "/api/placeholder/100/100",
+      rating: 5,
+      students: 200
+    },
+    {
+      name: "Mike Davis",
+      role: "DevOps Engineer",
+      image: "/api/placeholder/100/100",
+      rating: 5,
+      students: 150
     }
   ];
 
@@ -115,10 +101,10 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
-        <div className="container-custom">
+    <div className="min-h-screen bg-white">
+      {}
+      <section className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -126,95 +112,132 @@ const LandingPage = () => {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-                Learn from the{' '}
-                <span className="text-gradient">Best Mentors</span>{' '}
-                in Tech
+                Unlock Your Potential{' '}
+                <span className="text-blue-600">With Byway</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Master cutting-edge technologies with expert-led courses. Build real projects, 
-                earn certificates, and advance your career in tech.
+                Welcome to Byway, where learning is made easy. Discover thousands of courses,
+                master new skills, and achieve your goals with our expert-led instructors and comprehensive learning paths.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/courses" className="btn-primary flex items-center justify-center">
+                <Link to="/courses" className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                   Explore Courses
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
-                <button className="btn-secondary flex items-center justify-center">
-                  <Play className="mr-2 h-5 w-5" />
-                  Watch Demo
+                <button className="inline-flex items-center justify-center px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                  Learn More
                 </button>
               </div>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="relative"
             >
-              <div className="relative z-10 bg-white rounded-2xl shadow-2xl p-8">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-                    <BookOpen className="h-8 w-8 text-primary-600" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Start Learning Today</h3>
-                  <p className="text-gray-600 mb-6">Join thousands of students already learning</p>
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <div className="text-3xl font-bold text-primary-600">50K+</div>
-                      <div className="text-sm text-gray-500">Students</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-primary-600">98%</div>
-                      <div className="text-sm text-gray-500">Success Rate</div>
-                    </div>
-                  </div>
+              {}
+              <div className="relative">
+                {}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gray-200 rounded-full overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=face" alt="Student" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute top-8 left-0 w-28 h-28 bg-gray-200 rounded-full overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=112&h=112&fit=crop&crop=face" alt="Student" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute bottom-0 right-8 w-24 h-24 bg-gray-200 rounded-full overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96&h=96&fit=crop&crop=face" alt="Student" className="w-full h-full object-cover" />
+                </div>
+                {}
+                <div className="absolute bottom-4 left-4 w-40 h-24 bg-gray-200 rounded-lg overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=160&h=96&fit=crop" alt="Group" className="w-full h-full object-cover" />
+                </div>
+                {}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                  <Play className="h-6 w-6 text-white ml-1" />
                 </div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-primary-400 to-blue-400 rounded-2xl transform rotate-6"></div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Animated Statistics Bar */}
-      <section className="bg-primary-600 py-8">
-        <div className="container-custom">
-          <div className="text-center">
+      {}
+      <section className="bg-gray-100 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="text-white"
             >
-              <h3 className="text-2xl font-bold mb-2">Courses by our best mentors</h3>
-              <div className="text-5xl font-bold">
-                {animatedCount.toLocaleString()}+
-              </div>
-              <p className="text-primary-100 mt-2">Premium courses available</p>
+              <AnimatedCounter
+                end={250}
+                duration={2000}
+                suffix="+"
+                label="Global Students"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+            >
+              <AnimatedCounter
+                end={1000}
+                duration={2000}
+                suffix="+"
+                label="Online Courses"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <AnimatedCounter
+                end={15}
+                duration={2000}
+                suffix="+"
+                label="Expert Instructors"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              <AnimatedCounter
+                end={2400}
+                duration={2000}
+                suffix="+"
+                label="Happy Customers"
+              />
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Top Categories */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+      {}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
               Top Categories
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Explore our most popular course categories and start your learning journey
-            </p>
-          </motion.div>
+            <div className="flex items-center space-x-2">
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </button>
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category, index) => (
@@ -224,43 +247,35 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="card p-6 text-center hover:shadow-lg transition-all duration-200 group"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4 group-hover:bg-primary-200 transition-colors">
-                  <BookOpen className="h-8 w-8 text-primary-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                  <BookOpen className="h-8 w-8 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{category.name}</h3>
-                <p className="text-gray-600">{category.courseCount} courses</p>
-                <Link 
-                  to={`/courses?category=${category.categoryId}`}
-                  className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium mt-4 transition-colors"
-                >
-                  Explore
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
+                <p className="text-gray-600">{category.courseCount} Courses</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Top Courses */}
-      <section className="section-padding bg-gray-50">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Top Rated Courses
+      {}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              Top Courses
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover our highest-rated courses, loved by students worldwide
-            </p>
-          </motion.div>
+            <div className="flex items-center space-x-2">
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </button>
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {topCourses.map((course, index) => (
@@ -270,91 +285,69 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="course-card"
               >
-                <div className="aspect-w-16 aspect-h-9">
-                  {course.imageUrl ? (
-                    <img
-                      src={`http://localhost:5045${course.imageUrl}`}
-                      alt={course.name}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <BookOpen className="h-12 w-12 text-gray-400" />
+                <Link
+                  to={`/courses/${course.courseId}`}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all hover:-translate-y-1 block"
+                >
+                  <div className="aspect-w-16 aspect-h-9">
+                    {course.imageUrl ? (
+                      <img
+                        src={`http://localhost:5045${course.imageUrl}`}
+                        alt={course.name}
+                        className="w-full h-48 object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                        <BookOpen className="h-12 w-12 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {course.name}
+                    </h3>
+
+                    <div className="flex items-center mb-3">
+                      {renderStars(course.rate)}
                     </div>
-                  )}
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-primary-600 font-medium">
-                      {course.categoryName}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {course.totalHours}h
-                    </span>
+
+                    <p className="text-sm text-gray-600 mb-3">
+                      By {course.instructorName}
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-gray-900">
+                        ${course.price}
+                      </span>
+                    </div>
                   </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {course.name}
-                  </h3>
-                  
-                  <p className="text-sm text-gray-600 mb-3">
-                    By {course.instructorName}
-                  </p>
-                  
-                  <div className="flex items-center mb-4">
-                    {renderStars(course.rate)}
-                    <span className="ml-2 text-sm text-gray-600">
-                      ({course.rate}.0)
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-primary-600">
-                      ${course.price}
-                    </span>
-                    <Link
-                      to={`/courses/${course.courseId}`}
-                      className="btn-primary text-sm py-2 px-4"
-                    >
-                      View Course
-                    </Link>
-                  </div>
-                </div>
+                </Link>
               </motion.div>
             ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link to="/courses" className="btn-outline">
-              View All Courses
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
           </div>
         </div>
       </section>
 
-      {/* Top Instructors */}
-      <section className="section-padding bg-white">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Expert Instructors
+      {}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              Top Instructors
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Learn from industry professionals with years of real-world experience
-            </p>
-          </motion.div>
+            <div className="flex items-center space-x-2">
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </button>
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {instructors.map((instructor, index) => (
               <motion.div
                 key={index}
@@ -362,39 +355,39 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="card p-6 text-center"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow"
               >
-                <div className="w-24 h-24 bg-gray-300 rounded-full mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">{instructor.name}</h3>
-                <p className="text-primary-600 font-medium mb-2">{instructor.role}</p>
-                <p className="text-gray-600 text-sm mb-4">{instructor.experience} experience</p>
-                <div className="flex items-center justify-center text-sm text-gray-500">
-                  <BookOpen className="h-4 w-4 mr-1" />
-                  {instructor.courses} courses
+                <div className="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4 overflow-hidden">
+                  <img src={instructor.image} alt={instructor.name} className="w-full h-full object-cover" />
                 </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{instructor.name}</h3>
+                <p className="text-gray-600 text-sm mb-2">{instructor.role}</p>
+                <div className="flex items-center justify-center mb-2">
+                  {renderStars(instructor.rating)}
+                </div>
+                <p className="text-gray-500 text-sm">{instructor.students} Students</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Customer Testimonials */}
-      <section className="section-padding bg-gray-50">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              What Our Students Say
+      {}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              What Our Customer Say About Us
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Join thousands of satisfied learners who have transformed their careers
-            </p>
-          </motion.div>
+            <div className="flex items-center space-x-2">
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronLeft className="h-5 w-5 text-gray-600" />
+              </button>
+              <button className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
@@ -404,14 +397,14 @@ const LandingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                className="card p-6"
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 relative"
               >
-                <div className="flex items-center mb-4">
-                  {renderStars(testimonial.rating)}
-                </div>
-                <p className="text-gray-600 mb-6 italic">"{testimonial.comment}"</p>
+                <div className="absolute top-4 left-4 text-blue-400 text-4xl">"</div>
+                <p className="text-gray-600 mb-6 mt-4 italic">"{testimonial.comment}"</p>
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full mr-3"></div>
+                  <div className="w-12 h-12 bg-gray-300 rounded-full mr-3 overflow-hidden">
+                    <img src={testimonial.image} alt={testimonial.name} className="w-full h-full object-cover" />
+                  </div>
                   <div>
                     <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
                     <p className="text-sm text-gray-500">{testimonial.role}</p>
@@ -423,31 +416,56 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="section-padding bg-primary-600">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center text-white"
-          >
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-              Ready to Start Your Learning Journey?
-            </h2>
-            <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-              Join our community of learners and take the first step towards your dream career in tech.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/signup" className="bg-white text-primary-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-lg transition-colors">
-                Get Started Free
-              </Link>
-              <Link to="/courses" className="border-2 border-white text-white hover:bg-white hover:text-primary-600 font-medium py-3 px-8 rounded-lg transition-colors">
-                Browse Courses
-              </Link>
-            </div>
-          </motion.div>
+      {/* CTA Sections */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Become an Instructor */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="flex items-center"
+            >
+              <div className="w-32 h-32 bg-purple-100 rounded-full flex items-center justify-center mr-8">
+                <img src="https:
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Become an Instructor</h3>
+                <p className="text-gray-600 mb-6">
+                  Share your knowledge and expertise with students worldwide. Join our community of expert instructors.
+                </p>
+                <button className="inline-flex items-center px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                  Start Teaching Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </button>
+              </div>
+            </motion.div>
+
+            {}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="flex items-center"
+            >
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Transform your life through education</h3>
+                <p className="text-gray-600 mb-6">
+                  Take control of your future with our comprehensive learning paths designed for career advancement.
+                </p>
+                <button className="inline-flex items-center px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                  Explore Courses
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </button>
+              </div>
+              <div className="w-32 h-32 bg-blue-100 rounded-full flex items-center justify-center ml-8">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&h=128&fit=crop&crop=face" alt="Student" className="w-full h-full object-cover rounded-full" />
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
     </div>

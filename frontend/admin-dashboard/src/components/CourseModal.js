@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Star, Plus, Trash2 } from 'lucide-react';
+import { X, Upload, Star, Plus, Trash2, ChevronLeft, ChevronDown } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 
-const CourseModal = ({ course, categories, onClose }) => {
+const CourseModal = ({ course, categories, onClose, mode = 'add' }) => {
   const [loading, setLoading] = useState(false);
   const [instructors, setInstructors] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
   const [isViewMode, setIsViewMode] = useState(false);
-  
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -19,6 +21,16 @@ const CourseModal = ({ course, categories, onClose }) => {
     control
   } = useForm({
     defaultValues: {
+      name: '',
+      description: '',
+      categoryId: '',
+      instructorId: '',
+      level: '',
+      totalHours: '',
+      rate: 1,
+      price: '',
+      hasCertification: false,
+      certification: '',
       topics: [{ topicName: '', lectureCount: 1, durationMinutes: 60, order: 1 }]
     }
   });
@@ -33,9 +45,22 @@ const CourseModal = ({ course, categories, onClose }) => {
   useEffect(() => {
     fetchInstructors();
     if (course) {
+      if (mode === 'view') {
+        setIsViewMode(true);
+        setIsEditMode(false);
+      } else if (mode === 'edit') {
+        setIsEditMode(true);
+        setIsViewMode(false);
+      } else {
+        setIsEditMode(false);
+        setIsViewMode(false);
+      }
       populateForm();
+    } else {
+      setIsEditMode(false);
+      setIsViewMode(false);
     }
-  }, [course]);
+  }, [course, mode]);
 
   const fetchInstructors = async () => {
     try {
@@ -46,7 +71,7 @@ const CourseModal = ({ course, categories, onClose }) => {
     }
   };
 
-  const populateForm = () => {
+  const populateForm = async () => {
     setValue('name', course.name);
     setValue('description', course.description || '');
     setValue('categoryId', course.categoryId);
@@ -56,13 +81,26 @@ const CourseModal = ({ course, categories, onClose }) => {
     setValue('rate', course.rate);
     setValue('price', course.price);
     setValue('hasCertification', course.hasCertification);
-    
-    if (course.topics && course.topics.length > 0) {
-      setValue('topics', course.topics);
+    setValue('certification', course.certification || '');
+
+    try {
+      const response = await apiService.getCourse(course.courseId);
+      const fullCourse = response.data;
+
+      if (fullCourse.topics && fullCourse.topics.length > 0) {
+        setValue('topics', fullCourse.topics.map(topic => ({
+          topicName: topic.topicName,
+          lectureCount: topic.lectureCount,
+          durationMinutes: topic.durationMinutes,
+          order: topic.order
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch course details:', error);
     }
-    
+
     if (course.imageUrl) {
-      setImagePreview(`http://localhost:5000${course.imageUrl}`);
+      setImagePreview(`http://localhost:5045${course.imageUrl}`);
     }
   };
 
@@ -79,7 +117,7 @@ const CourseModal = ({ course, categories, onClose }) => {
         toast.error('Image size should be less than 5MB');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target.result);
@@ -101,32 +139,62 @@ const CourseModal = ({ course, categories, onClose }) => {
     }
   };
 
+  const handleNext = () => {
+
+    const step1Data = watch(['name', 'categoryId', 'instructorId', 'level', 'totalHours', 'price', 'rate']);
+    const [name, categoryId, instructorId, level, totalHours, price, rate] = step1Data;
+
+    if (!name || !categoryId || !instructorId || !level || !totalHours || !price || !rate) {
+      toast.error('Please fill in all required fields before proceeding');
+      return;
+    }
+
+    setCurrentStep(2);
+  };
+
+  const handleBack = () => {
+    setCurrentStep(1);
+  };
+
   const onSubmit = async (data) => {
     setLoading(true);
-    
+
     try {
+      console.log('Form data received:', data);
+      console.log('Certification value:', data.certification);
+      console.log('Topics data:', data.topics);
+
       const formData = new FormData();
       formData.append('name', data.name);
       formData.append('description', data.description || '');
-      formData.append('categoryId', data.categoryId);
-      formData.append('instructorId', data.instructorId);
-      formData.append('level', data.level);
-      formData.append('totalHours', data.totalHours);
-      formData.append('rate', data.rate);
-      formData.append('price', data.price);
-      formData.append('hasCertification', data.hasCertification);
-      
-      // Add topics
-      data.topics.forEach((topic, index) => {
-        formData.append(`topics[${index}].topicName`, topic.topicName);
-        formData.append(`topics[${index}].lectureCount`, topic.lectureCount);
-        formData.append(`topics[${index}].durationMinutes`, topic.durationMinutes);
-        formData.append(`topics[${index}].order`, index + 1);
-      });
-      
+      formData.append('categoryId', parseInt(data.categoryId));
+      formData.append('instructorId', parseInt(data.instructorId));
+      formData.append('level', parseInt(data.level));
+      formData.append('totalHours', parseInt(data.totalHours));
+      formData.append('rate', parseInt(data.rate));
+      formData.append('price', parseFloat(data.price));
+      formData.append('hasCertification', data.hasCertification === true || data.hasCertification === 'true');
+      formData.append('certification', data.certification || '');
+
+      console.log('Raw topics data:', data.topics);
+      const topicsJson = JSON.stringify(data.topics.map((topic, index) => ({
+        topicName: topic.topicName,
+        lectureCount: parseInt(topic.lectureCount),
+        durationMinutes: parseInt(topic.durationMinutes),
+        order: index + 1
+      })));
+      console.log('Topics JSON:', topicsJson);
+      console.log('Topics JSON length:', topicsJson.length);
+      formData.append('topicsJson', topicsJson);
+
       const imageFile = data.image?.[0];
       if (imageFile) {
         formData.append('image', imageFile);
+      }
+
+      console.log('FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
       }
 
       if (course) {
@@ -136,10 +204,14 @@ const CourseModal = ({ course, categories, onClose }) => {
         await apiService.createCourse(formData);
         toast.success('Course created successfully');
       }
-      
+
       onClose(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Operation failed');
+      console.error('Course creation error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error message:', error.message);
+      toast.error(error.response?.data?.message || `Operation failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -164,368 +236,450 @@ const CourseModal = ({ course, categories, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={() => onClose()}></div>
-        </div>
+        <div className="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-50" aria-hidden="true"></div>
 
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                {course ? (isViewMode ? 'View Course' : 'Edit Course') : 'Add New Course'}
+        <div className="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+          <div className="bg-white px-6 pt-6 pb-6 max-h-[90vh] overflow-y-auto">
+            {}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {isViewMode
+                  ? (currentStep === 1 ? 'View Course Step 1 of 2' : '← View Course Step 2 of 2')
+                  : isEditMode
+                    ? (currentStep === 1 ? 'Update Course Step 1 of 2' : '← Update Course Step 2 of 2')
+                    : (currentStep === 1 ? 'Add Course Step 1 of 2' : '← Add Course Step 2 of 2')
+                }
               </h3>
-              <div className="flex items-center space-x-2">
-                {course && (
-                  <button
-                    type="button"
-                    onClick={() => setIsViewMode(!isViewMode)}
-                    className="text-sm text-primary-600 hover:text-primary-800"
-                  >
-                    {isViewMode ? 'Edit' : 'View'}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="text-gray-400 hover:text-gray-600"
-                  onClick={() => onClose()}
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
+              <button
+                type="button"
+                className="text-gray-400 hover:text-gray-600"
+                onClick={() => onClose()}
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Step 1: Course Details */}
-              <div className="border-b border-gray-200 pb-6">
-                <h4 className="text-md font-medium text-gray-900 mb-4">Course Information</h4>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Course Image */}
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Image
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <div className="h-32 w-48 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                        {imagePreview ? (
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="h-full w-full object-cover"
-                          />
+              {currentStep === 1 ? (
+
+                <>
+                  <div className="mb-6">
+                    <h4 className="text-md font-medium text-gray-900 mb-4">Course details</h4>
+                  </div>
+
+                  {}
+                  <div className="mb-6">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <div className="space-y-4">
+                        {isViewMode ? (
+
+                          imagePreview ? (
+                            <div className="mt-4">
+                              <img
+                                src={imagePreview}
+                                alt="Course"
+                                className="mx-auto h-48 w-auto rounded-lg object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-500">
+                              <p>No image available</p>
+                            </div>
+                          )
                         ) : (
-                          <Upload className="h-8 w-8 text-gray-400" />
+
+                          <>
+                            <div className="text-sm text-gray-500">
+                              <p>Size: 700x430 pixels</p>
+                              <p>File Support: .jpg, .jpeg, png, or .gif</p>
+                            </div>
+                            <div>
+                              <input
+                                {...register('image')}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
+                                id="image-upload"
+                              />
+                              <label
+                                htmlFor="image-upload"
+                                className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                              >
+                                <Upload className="h-4 w-4" />
+                                <span>Upload Image</span>
+                              </label>
+                            </div>
+                            {imagePreview && (
+                              <div className="mt-4">
+                                <img
+                                  src={imagePreview}
+                                  alt="Preview"
+                                  className="mx-auto h-32 w-auto rounded-lg"
+                                />
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
-                      {!isViewMode && (
-                        <div>
-                          <input
-                            {...register('image')}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="hidden"
-                            id="image-upload"
-                          />
-                          <label
-                            htmlFor="image-upload"
-                            className="cursor-pointer btn-secondary text-sm"
-                          >
-                            Choose Image
-                          </label>
-                          <p className="text-xs text-gray-500 mt-1">
-                            JPG, PNG, GIF up to 5MB
-                          </p>
-                        </div>
+                    </div>
+                  </div>
+
+                  {}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {}
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                        Course Name
+                      </label>
+                      <input
+                        {...register('name', { required: 'Course name is required' })}
+                        type="text"
+                        disabled={isViewMode}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                        }`}
+                        placeholder="Write here"
+                      />
+                      {errors.name && (
+                        <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
                       )}
                     </div>
-                  </div>
 
-                  {/* Course Name */}
-                  <div className="md:col-span-2">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Course Name *
-                    </label>
-                    <input
-                      {...register('name', { required: 'Course name is required' })}
-                      type="text"
-                      className="mt-1 input-field"
-                      placeholder="Enter course name"
-                      disabled={isViewMode}
-                    />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                    )}
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
-                      Category *
-                    </label>
-                    <select
-                      {...register('categoryId', { required: 'Category is required' })}
-                      className="mt-1 input-field"
-                      disabled={isViewMode}
-                    >
-                      <option value="">Select category</option>
-                      {categories.map((category) => (
-                        <option key={category.categoryId} value={category.categoryId}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.categoryId && (
-                      <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
-                    )}
-                  </div>
-
-                  {/* Instructor */}
-                  <div>
-                    <label htmlFor="instructorId" className="block text-sm font-medium text-gray-700">
-                      Instructor *
-                    </label>
-                    <select
-                      {...register('instructorId', { required: 'Instructor is required' })}
-                      className="mt-1 input-field"
-                      disabled={isViewMode}
-                    >
-                      <option value="">Select instructor</option>
-                      {instructors.map((instructor) => (
-                        <option key={instructor.instructorId} value={instructor.instructorId}>
-                          {instructor.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.instructorId && (
-                      <p className="mt-1 text-sm text-red-600">{errors.instructorId.message}</p>
-                    )}
-                  </div>
-
-                  {/* Level */}
-                  <div>
-                    <label htmlFor="level" className="block text-sm font-medium text-gray-700">
-                      Level *
-                    </label>
-                    <select
-                      {...register('level', { required: 'Level is required' })}
-                      className="mt-1 input-field"
-                      disabled={isViewMode}
-                    >
-                      <option value="">Select level</option>
-                      {levelOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.level && (
-                      <p className="mt-1 text-sm text-red-600">{errors.level.message}</p>
-                    )}
-                  </div>
-
-                  {/* Total Hours */}
-                  <div>
-                    <label htmlFor="totalHours" className="block text-sm font-medium text-gray-700">
-                      Total Hours *
-                    </label>
-                    <input
-                      {...register('totalHours', { 
-                        required: 'Total hours is required',
-                        min: { value: 1, message: 'Must be at least 1 hour' }
-                      })}
-                      type="number"
-                      min="1"
-                      className="mt-1 input-field"
-                      placeholder="Enter total hours"
-                      disabled={isViewMode}
-                    />
-                    {errors.totalHours && (
-                      <p className="mt-1 text-sm text-red-600">{errors.totalHours.message}</p>
-                    )}
-                  </div>
-
-                  {/* Price */}
-                  <div>
-                    <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                      Price ($) *
-                    </label>
-                    <input
-                      {...register('price', { 
-                        required: 'Price is required',
-                        min: { value: 0, message: 'Price cannot be negative' }
-                      })}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="mt-1 input-field"
-                      placeholder="Enter price"
-                      disabled={isViewMode}
-                    />
-                    {errors.price && (
-                      <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
-                    )}
-                  </div>
-
-                  {/* Rating */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Rating *
-                    </label>
-                    <div className="flex items-center space-x-1">
-                      {renderStars(selectedRate, !isViewMode)}
-                      <span className="ml-2 text-sm text-gray-600">
-                        ({selectedRate} star{selectedRate !== 1 ? 's' : ''})
-                      </span>
+                    {}
+                    <div>
+                      <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </label>
+                      <div className="relative">
+                        <select
+                          {...register('categoryId', { required: 'Category is required' })}
+                          disabled={isViewMode}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white ${
+                            isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          <option value="">Choose</option>
+                          {categories.map((category) => (
+                            <option key={category.categoryId} value={category.categoryId}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      </div>
+                      {errors.categoryId && (
+                        <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
+                      )}
                     </div>
-                    <input
-                      {...register('rate', { required: 'Rating is required' })}
-                      type="hidden"
-                    />
+
+                    {}
+                    <div>
+                      <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-2">
+                        Level
+                      </label>
+                      <div className="relative">
+                        <select
+                          {...register('level', { required: 'Level is required' })}
+                          disabled={isViewMode}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white ${
+                            isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          <option value="">Choose</option>
+                          {levelOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      </div>
+                      {errors.level && (
+                        <p className="mt-1 text-sm text-red-600">{errors.level.message}</p>
+                      )}
+                    </div>
+
+                    {}
+                    <div>
+                      <label htmlFor="instructorId" className="block text-sm font-medium text-gray-700 mb-2">
+                        Instructor
+                      </label>
+                      <div className="relative">
+                        <select
+                          {...register('instructorId', { required: 'Instructor is required' })}
+                          disabled={isViewMode}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white ${
+                            isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          <option value="">Choose</option>
+                          {instructors.map((instructor) => (
+                            <option key={instructor.instructorId} value={instructor.instructorId}>
+                              {instructor.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      </div>
+                      {errors.instructorId && (
+                        <p className="mt-1 text-sm text-red-600">{errors.instructorId.message}</p>
+                      )}
+                    </div>
+
+                    {}
+                    <div>
+                      <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+                        Cost
+                      </label>
+                      <input
+                        {...register('price', {
+                          required: 'Price is required',
+                          min: { value: 0, message: 'Price cannot be negative' }
+                        })}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        disabled={isViewMode}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                        }`}
+                        placeholder="Write here"
+                      />
+                      {errors.price && (
+                        <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>
+                      )}
+                    </div>
+
+                    {}
+                    <div>
+                      <label htmlFor="totalHours" className="block text-sm font-medium text-gray-700 mb-2">
+                        Total hours
+                      </label>
+                      <input
+                        {...register('totalHours', {
+                          required: 'Total hours is required',
+                          min: { value: 1, message: 'Must be at least 1 hour' }
+                        })}
+                        type="number"
+                        min="1"
+                        disabled={isViewMode}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                        }`}
+                        placeholder="Write here"
+                      />
+                      {errors.totalHours && (
+                        <p className="mt-1 text-sm text-red-600">{errors.totalHours.message}</p>
+                      )}
+                    </div>
+
+                    {}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Rate
+                      </label>
+                      <div className="flex items-center space-x-1">
+                        {renderStars(selectedRate, !isViewMode)}
+                      </div>
+                      <input
+                        {...register('rate', { required: 'Rating is required' })}
+                        type="hidden"
+                      />
+                    </div>
+
+                    {}
+                    <div className="md:col-span-2">
+                      <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        {...register('description')}
+                        rows={6}
+                        disabled={isViewMode}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                          isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                        }`}
+                        placeholder="Write here"
+                      />
+                    </div>
+
+                    {}
+                    <div className="md:col-span-2">
+                      <label htmlFor="certification" className="block text-sm font-medium text-gray-700 mb-2">
+                        Certification
+                      </label>
+                      <textarea
+                        {...register('certification')}
+                        rows={6}
+                        disabled={isViewMode}
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
+                          isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                        }`}
+                        placeholder="Write here"
+                      />
+                    </div>
                   </div>
 
-                  {/* Has Certification */}
-                  <div className="flex items-center">
-                    <input
-                      {...register('hasCertification')}
-                      type="checkbox"
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      disabled={isViewMode}
-                    />
-                    <label className="ml-2 block text-sm text-gray-900">
-                      Provides Certificate
-                    </label>
-                  </div>
-
-                  {/* Description */}
-                  <div className="md:col-span-2">
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                      Description
-                    </label>
-                    <textarea
-                      {...register('description')}
-                      rows={4}
-                      className="mt-1 input-field"
-                      placeholder="Enter course description"
-                      disabled={isViewMode}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 2: Course Topics */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-md font-medium text-gray-900">Course Topics</h4>
-                  {!isViewMode && (
+                  {}
+                  <div className="flex justify-end space-x-3 pt-6">
                     <button
                       type="button"
-                      onClick={addTopic}
-                      className="btn-secondary text-sm flex items-center"
+                      onClick={() => onClose()}
+                      className="px-4 py-2 text-red-600 bg-white border border-red-600 rounded-lg hover:bg-red-50 transition-colors"
                     >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Topic
+                      Cancel
                     </button>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleNext();
+                      }}
+                      className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
+              ) : (
 
-                <div className="space-y-4">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="p-4 border border-gray-200 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-sm font-medium text-gray-700">Topic {index + 1}</h5>
-                        {!isViewMode && fields.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTopic(index)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            Topic Name *
-                          </label>
-                          <input
-                            {...register(`topics.${index}.topicName`, {
-                              required: 'Topic name is required'
-                            })}
-                            type="text"
-                            className="mt-1 input-field"
-                            placeholder="Enter topic name"
-                            disabled={isViewMode}
-                          />
-                          {errors.topics?.[index]?.topicName && (
-                            <p className="mt-1 text-sm text-red-600">
-                              {errors.topics[index].topicName.message}
-                            </p>
+                <>
+                  <div className="mb-6">
+                    <h4 className="text-md font-medium text-gray-900 mb-4">
+                      {isViewMode ? 'View Contents' : isEditMode ? 'Update Contents' : 'Add Content'}
+                    </h4>
+                  </div>
+
+                  {}
+                  <div className="space-y-6">
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="p-6 border border-gray-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <h5 className="text-sm font-medium text-gray-700">Content {index + 1}</h5>
+                          {!isViewMode && fields.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeTopic(index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
                           )}
                         </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Lectures *
-                          </label>
-                          <input
-                            {...register(`topics.${index}.lectureCount`, {
-                              required: 'Lecture count is required',
-                              min: { value: 1, message: 'Must be at least 1' }
-                            })}
-                            type="number"
-                            min="1"
-                            className="mt-1 input-field"
-                            disabled={isViewMode}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Duration (minutes) *
-                          </label>
-                          <input
-                            {...register(`topics.${index}.durationMinutes`, {
-                              required: 'Duration is required',
-                              min: { value: 1, message: 'Must be at least 1 minute' }
-                            })}
-                            type="number"
-                            min="1"
-                            className="mt-1 input-field"
-                            disabled={isViewMode}
-                          />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Name
+                            </label>
+                            <input
+                              {...register(`topics.${index}.topicName`, {
+                                required: 'Topic name is required'
+                              })}
+                              type="text"
+                              disabled={isViewMode}
+                              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                              }`}
+                              placeholder="Write here"
+                            />
+                            {errors.topics?.[index]?.topicName && (
+                              <p className="mt-1 text-sm text-red-600">
+                                {errors.topics[index].topicName.message}
+                              </p>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Lectures Number
+                            </label>
+                            <input
+                              {...register(`topics.${index}.lectureCount`, {
+                                required: 'Lecture count is required',
+                                min: { value: 1, message: 'Must be at least 1' }
+                              })}
+                              type="number"
+                              min="1"
+                              disabled={isViewMode}
+                              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                              }`}
+                              placeholder="Write here"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Time
+                            </label>
+                            <input
+                              {...register(`topics.${index}.durationMinutes`, {
+                                required: 'Duration is required',
+                                min: { value: 1, message: 'Must be at least 1 minute' }
+                              })}
+                              type="number"
+                              min="1"
+                              disabled={isViewMode}
+                              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                isViewMode ? 'bg-gray-50 cursor-not-allowed' : ''
+                              }`}
+                              placeholder="Write here"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    ))}
+                  </div>
 
-              {/* Action Buttons */}
-              {!isViewMode && (
-                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => onClose()}
-                    className="btn-secondary"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn-primary"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  {}
+                  {!isViewMode && (
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={addTopic}
+                        className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>Add Another Content</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {}
+                  <div className="flex justify-end space-x-3 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => onClose()}
+                      className="px-4 py-2 text-red-600 bg-white border border-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    {isViewMode ? (
+                      <button
+                        type="button"
+                        onClick={handleBack}
+                        className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                      >
+                        Back
+                      </button>
                     ) : (
-                      course ? 'Update Course' : 'Create Course'
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        ) : (
+                          isEditMode ? 'Update' : 'Add'
+                        )}
+                      </button>
                     )}
-                  </button>
-                </div>
+                  </div>
+                </>
               )}
             </form>
           </div>

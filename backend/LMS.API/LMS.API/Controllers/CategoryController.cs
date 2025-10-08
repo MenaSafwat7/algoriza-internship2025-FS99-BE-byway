@@ -16,9 +16,6 @@ public class CategoryController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// Get all categories with course counts
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<List<CategoryDto>>> GetCategories()
     {
@@ -42,9 +39,6 @@ public class CategoryController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get category by ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<CategoryDto>> GetCategory(int id)
     {

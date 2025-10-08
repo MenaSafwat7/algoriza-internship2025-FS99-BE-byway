@@ -20,9 +20,6 @@ public class AdminController : ControllerBase
         _jwtService = jwtService;
     }
 
-    /// <summary>
-    /// Admin login endpoint
-    /// </summary>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] AdminLoginDto loginDto)
     {
@@ -52,9 +49,6 @@ public class AdminController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get dashboard statistics
-    /// </summary>
     [HttpGet("dashboard-stats")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DashboardStatsDto>> GetDashboardStats()
@@ -65,14 +59,12 @@ public class AdminController : ControllerBase
             var totalCategories = await _context.Categories.CountAsync();
             var totalCourses = await _context.Courses.CountAsync();
 
-            // Calculate purchases this month
             var currentMonth = DateTime.UtcNow.Month;
             var currentYear = DateTime.UtcNow.Year;
             var purchasesThisMonth = await _context.Purchases
                 .Where(p => p.PurchaseDate.Month == currentMonth && p.PurchaseDate.Year == currentYear)
                 .SumAsync(p => p.Amount);
 
-            // Get category statistics
             var categoryStats = await _context.Categories
                 .Select(c => new CategoryStatsDto
                 {
@@ -81,7 +73,6 @@ public class AdminController : ControllerBase
                 })
                 .ToListAsync();
 
-            // Calculate percentages
             if (totalCourses > 0)
             {
                 foreach (var stat in categoryStats)

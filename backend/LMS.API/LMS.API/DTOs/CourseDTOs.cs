@@ -19,6 +19,7 @@ public class CourseDto
     public int Rate { get; set; }
     public decimal Price { get; set; }
     public bool HasCertification { get; set; }
+    public string? Certification { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public List<CourseTopicDto> Topics { get; set; } = new();
@@ -65,7 +66,12 @@ public class CreateCourseDto
 
     public bool HasCertification { get; set; }
 
+    [StringLength(2000)]
+    public string? Certification { get; set; }
+
     public IFormFile? Image { get; set; }
+
+    public string? TopicsJson { get; set; }
 
     public List<CreateCourseTopicDto> Topics { get; set; } = new();
 }
@@ -121,7 +127,12 @@ public class UpdateCourseDto
 
     public bool HasCertification { get; set; }
 
+    [StringLength(2000)]
+    public string? Certification { get; set; }
+
     public IFormFile? Image { get; set; }
+
+    public string? TopicsJson { get; set; }
 
     public List<CreateCourseTopicDto> Topics { get; set; } = new();
 }

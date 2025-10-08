@@ -26,20 +26,16 @@ public class PurchaseController : ControllerBase
         return int.Parse(userIdClaim ?? "0");
     }
 
-    /// <summary>
-    /// Process purchase from cart or specific courses
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> ProcessPurchase([FromBody] ProcessPurchaseDto purchaseDto)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
-        
+
         try
         {
             var userId = GetCurrentUserId();
             var courseIds = purchaseDto.CourseIds;
 
-            // If no specific courses provided, get all from cart
             if (!courseIds.Any())
             {
                 var cartItems = await _context.CartItems
@@ -54,7 +50,6 @@ public class PurchaseController : ControllerBase
                 courseIds = cartItems.Select(ci => ci.CourseId).ToList();
             }
 
-            // Validate courses exist and user hasn't already purchased them
             var courses = await _context.Courses
                 .Where(c => courseIds.Contains(c.CourseId))
                 .ToListAsync();
@@ -64,7 +59,6 @@ public class PurchaseController : ControllerBase
                 return BadRequest(new { message = "One or more courses not found" });
             }
 
-            // Check for existing purchases
             var existingPurchases = await _context.Purchases
                 .Where(p => p.UserId == userId && courseIds.Contains(p.CourseId))
                 .Select(p => p.CourseId)
@@ -75,26 +69,23 @@ public class PurchaseController : ControllerBase
                 return BadRequest(new { message = "You have already purchased one or more of these courses" });
             }
 
-            // Calculate totals
             var subtotal = courses.Sum(c => c.Price);
             var discount = purchaseDto.Discount;
-            var tax = (subtotal - discount) * 0.15m; // 15% tax
+            var tax = (subtotal - discount) * 0.15m;
             var totalAmount = subtotal - discount + tax;
 
-            // Create purchases
             var purchases = courses.Select(course => new Purchase
             {
                 UserId = userId,
                 CourseId = course.CourseId,
                 PurchaseDate = DateTime.UtcNow,
                 Amount = course.Price,
-                Tax = (course.Price - (discount / courses.Count)) * 0.15m, // Distribute discount proportionally
-                Discount = discount / courses.Count // Distribute discount proportionally
+                Tax = (course.Price - (discount / courses.Count)) * 0.15m,
+                Discount = discount / courses.Count
             }).ToList();
 
             _context.Purchases.AddRange(purchases);
 
-            // Remove items from cart
             var cartItemsToRemove = await _context.CartItems
                 .Where(ci => ci.UserId == userId && courseIds.Contains(ci.CourseId))
                 .ToListAsync();
@@ -104,7 +95,7 @@ public class PurchaseController : ControllerBase
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return Ok(new { 
+            return Ok(new {
                 message = "Purchase completed successfully",
                 totalAmount,
                 coursesCount = courses.Count
@@ -117,9 +108,6 @@ public class PurchaseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get user's purchase history
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<List<PurchaseDto>>> GetPurchases()
     {
@@ -154,9 +142,6 @@ public class PurchaseController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Check if user has purchased a specific course
-    /// </summary>
     [HttpGet("check/{courseId}")]
     public async Task<ActionResult<bool>> HasPurchasedCourse(int courseId)
     {

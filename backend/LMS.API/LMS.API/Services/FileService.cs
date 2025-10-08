@@ -4,7 +4,7 @@ public class FileService : IFileService
 {
     private readonly IWebHostEnvironment _environment;
     private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
-    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+    private const long MaxFileSize = 5 * 1024 * 1024;
 
     public FileService(IWebHostEnvironment environment)
     {
@@ -17,7 +17,7 @@ public class FileService : IFileService
             throw new ArgumentException("Invalid image file");
 
         var uploadsPath = Path.Combine(_environment.WebRootPath, "images", folder);
-        
+
         if (!Directory.Exists(uploadsPath))
             Directory.CreateDirectory(uploadsPath);
 
@@ -48,7 +48,7 @@ public class FileService : IFileService
         }
         catch
         {
-            // Log error but don't throw
+
         }
 
         return false;

@@ -14,7 +14,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
@@ -33,35 +33,35 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Layout>
                     <Dashboard />
                   </Layout>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/instructors" 
+            <Route
+              path="/instructors"
               element={
                 <ProtectedRoute>
                   <Layout>
                     <Instructors />
                   </Layout>
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/courses" 
+            <Route
+              path="/courses"
               element={
                 <ProtectedRoute>
                   <Layout>
                     <Courses />
                   </Layout>
                 </ProtectedRoute>
-              } 
+              }
             />
           </Routes>
         </div>

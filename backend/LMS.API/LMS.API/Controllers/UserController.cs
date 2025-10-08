@@ -20,37 +20,44 @@ public class UserController : ControllerBase
         _jwtService = jwtService;
     }
 
-    /// <summary>
-    /// User registration endpoint
-    /// </summary>
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] UserRegisterDto registerDto)
     {
         try
         {
-            // Check if username already exists
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == registerDto.Username || u.Email == registerDto.Email);
-
-            if (existingUser != null)
+            if (!ModelState.IsValid)
             {
-                if (existingUser.Username == registerDto.Username)
-                {
-                    return BadRequest(new { message = "Username is already taken" });
-                }
-                if (existingUser.Email == registerDto.Email)
-                {
-                    return BadRequest(new { message = "Email is already registered" });
-                }
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).ToArray() ?? Array.Empty<string>()
+                    );
+                return BadRequest(new { message = "Invalid data", errors });
             }
 
-            // Create new user
+            var existingUsername = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username == registerDto.Username);
+            if (existingUsername != null)
+            {
+                return BadRequest(new { message = "Username is already taken" });
+            }
+
+            var existingEmail = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == registerDto.Email.ToLower());
+            if (existingEmail != null)
+            {
+                return BadRequest(new { message = "Email is already registered" });
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
+
             var user = new User
             {
                 FullName = registerDto.FullName,
                 Username = registerDto.Username,
-                Email = registerDto.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                Email = registerDto.Email.ToLower(),
+                Password = passwordHash,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -69,13 +76,12 @@ public class UserController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred during registration", error = ex.Message });
+            Console.WriteLine($"Registration error: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            return StatusCode(500, new { message = "An error occurred during registration" });
         }
     }
 
-    /// <summary>
-    /// User login endpoint
-    /// </summary>
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] UserLoginDto loginDto)
     {

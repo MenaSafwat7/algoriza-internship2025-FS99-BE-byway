@@ -22,9 +22,6 @@ public class InstructorController : ControllerBase
         _fileService = fileService;
     }
 
-    /// <summary>
-    /// Get instructors with pagination and search
-    /// </summary>
     [HttpGet]
     public async Task<ActionResult<PaginatedResult<InstructorDto>>> GetInstructors(
         [FromQuery] int page = 1,
@@ -35,10 +32,9 @@ public class InstructorController : ControllerBase
         {
             var query = _context.Instructors.AsQueryable();
 
-            // Apply search filter
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(i => i.Name.Contains(search) || 
+                query = query.Where(i => i.Name.Contains(search) ||
                                         i.JobTitle.ToString().Contains(search));
             }
 
@@ -76,9 +72,6 @@ public class InstructorController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Get instructor by ID
-    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<InstructorDto>> GetInstructor(int id)
     {
@@ -115,9 +108,6 @@ public class InstructorController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Create a new instructor
-    /// </summary>
     [HttpPost]
     public async Task<ActionResult<InstructorDto>> CreateInstructor([FromForm] CreateInstructorDto createDto)
     {
@@ -125,7 +115,6 @@ public class InstructorController : ControllerBase
         {
             string? imageUrl = null;
 
-            // Handle image upload
             if (createDto.Image != null)
             {
                 if (!_fileService.IsValidImage(createDto.Image))
@@ -172,9 +161,6 @@ public class InstructorController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Update an instructor
-    /// </summary>
     [HttpPut("{id}")]
     public async Task<ActionResult<InstructorDto>> UpdateInstructor(int id, [FromForm] UpdateInstructorDto updateDto)
     {
@@ -188,7 +174,6 @@ public class InstructorController : ControllerBase
 
             string? newImageUrl = instructor.ImageUrl;
 
-            // Handle image upload
             if (updateDto.Image != null)
             {
                 if (!_fileService.IsValidImage(updateDto.Image))
@@ -196,14 +181,11 @@ public class InstructorController : ControllerBase
                     return BadRequest(new { message = "Invalid image file. Please upload a JPG, JPEG, PNG, or GIF file under 5MB." });
                 }
 
-                // Delete old image
                 _fileService.DeleteImage(instructor.ImageUrl);
 
-                // Save new image
                 newImageUrl = await _fileService.SaveImageAsync(updateDto.Image, "instructors");
             }
 
-            // Update instructor properties
             instructor.Name = updateDto.Name;
             instructor.JobTitle = updateDto.JobTitle;
             instructor.Rate = updateDto.Rate;
@@ -235,9 +217,6 @@ public class InstructorController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Delete an instructor
-    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteInstructor(int id)
     {
@@ -252,13 +231,11 @@ public class InstructorController : ControllerBase
                 return NotFound(new { message = "Instructor not found" });
             }
 
-            // Check if instructor has courses
             if (instructor.Courses.Any())
             {
                 return BadRequest(new { message = "Cannot delete instructor. This instructor is assigned to one or more courses." });
             }
 
-            // Delete image file
             _fileService.DeleteImage(instructor.ImageUrl);
 
             _context.Instructors.Remove(instructor);

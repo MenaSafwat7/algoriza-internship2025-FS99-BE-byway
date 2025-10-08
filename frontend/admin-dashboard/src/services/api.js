@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5045/api';
 
 class ApiService {
   constructor() {
@@ -30,17 +30,14 @@ class ApiService {
     }
   }
 
-  // Auth endpoints
   adminLogin(email, password) {
     return this.api.post('/admin/login', { email, password });
   }
 
-  // Dashboard endpoints
   getDashboardStats() {
     return this.api.get('/admin/dashboard-stats');
   }
 
-  // Instructor endpoints
   getInstructors(params = {}) {
     return this.api.get('/instructor', { params });
   }
@@ -65,7 +62,6 @@ class ApiService {
     return this.api.delete(`/instructor/${id}`);
   }
 
-  // Course endpoints
   getCourses(params = {}) {
     return this.api.get('/course', { params });
   }
@@ -90,7 +86,6 @@ class ApiService {
     return this.api.delete(`/course/${id}`);
   }
 
-  // Category endpoints
   getCategories() {
     return this.api.get('/category');
   }
