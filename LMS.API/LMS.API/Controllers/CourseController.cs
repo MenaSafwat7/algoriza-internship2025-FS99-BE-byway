@@ -305,14 +305,35 @@ public class CourseController : ControllerBase
 
             string? imageUrl = null;
 
+            Console.WriteLine($"Image file received: {createDto.Image != null}");
             if (createDto.Image != null)
             {
+                Console.WriteLine($"Image file name: {createDto.Image.FileName}");
+                Console.WriteLine($"Image file size: {createDto.Image.Length} bytes");
+                Console.WriteLine($"Image content type: {createDto.Image.ContentType}");
+                
                 if (!_fileService.IsValidImage(createDto.Image))
                 {
+                    Console.WriteLine("Image validation failed");
                     return BadRequest(new { message = "Invalid image file. Please upload a JPG, JPEG, PNG, or GIF file under 5MB." });
                 }
 
-                imageUrl = await _fileService.SaveImageAsync(createDto.Image, "courses");
+                Console.WriteLine("Image validation passed, attempting to save...");
+                try
+                {
+                    imageUrl = await _fileService.SaveImageAsync(createDto.Image, "courses");
+                    Console.WriteLine($"Image saved successfully: {imageUrl}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error saving image: {ex.Message}");
+                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                    return BadRequest(new { message = "Failed to save image file", error = ex.Message });
+                }
+            }
+            else
+            {
+                Console.WriteLine("No image file provided");
             }
 
             var course = new Course
@@ -421,16 +442,38 @@ public class CourseController : ControllerBase
 
             string? newImageUrl = course.ImageUrl;
 
+            Console.WriteLine($"UpdateCourse - Image file received: {updateDto.Image != null}");
             if (updateDto.Image != null)
             {
+                Console.WriteLine($"UpdateCourse - Image file name: {updateDto.Image.FileName}");
+                Console.WriteLine($"UpdateCourse - Image file size: {updateDto.Image.Length} bytes");
+                Console.WriteLine($"UpdateCourse - Image content type: {updateDto.Image.ContentType}");
+                
                 if (!_fileService.IsValidImage(updateDto.Image))
                 {
+                    Console.WriteLine("UpdateCourse - Image validation failed");
                     return BadRequest(new { message = "Invalid image file. Please upload a JPG, JPEG, PNG, or GIF file under 5MB." });
                 }
 
+                Console.WriteLine("UpdateCourse - Image validation passed, deleting old image...");
                 _fileService.DeleteImage(course.ImageUrl);
 
-                newImageUrl = await _fileService.SaveImageAsync(updateDto.Image, "courses");
+                Console.WriteLine("UpdateCourse - Attempting to save new image...");
+                try
+                {
+                    newImageUrl = await _fileService.SaveImageAsync(updateDto.Image, "courses");
+                    Console.WriteLine($"UpdateCourse - New image saved successfully: {newImageUrl}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"UpdateCourse - Error saving image: {ex.Message}");
+                    Console.WriteLine($"UpdateCourse - Stack trace: {ex.StackTrace}");
+                    return BadRequest(new { message = "Failed to save image file", error = ex.Message });
+                }
+            }
+            else
+            {
+                Console.WriteLine("UpdateCourse - No image file provided, keeping existing image");
             }
 
             course.Name = updateDto.Name;

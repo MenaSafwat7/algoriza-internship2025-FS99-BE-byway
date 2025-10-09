@@ -13,23 +13,43 @@ public class FileService : IFileService
 
     public async Task<string> SaveImageAsync(IFormFile image, string folder)
     {
+        Console.WriteLine($"FileService.SaveImageAsync called for folder: {folder}");
+        Console.WriteLine($"WebRootPath: {_environment.WebRootPath}");
+        
         if (!IsValidImage(image))
             throw new ArgumentException("Invalid image file");
 
         var uploadsPath = Path.Combine(_environment.WebRootPath, "images", folder);
+        Console.WriteLine($"Uploads path: {uploadsPath}");
 
         if (!Directory.Exists(uploadsPath))
+        {
+            Console.WriteLine($"Creating directory: {uploadsPath}");
             Directory.CreateDirectory(uploadsPath);
+        }
 
         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName).ToLower()}";
         var filePath = Path.Combine(uploadsPath, fileName);
+        Console.WriteLine($"File path: {filePath}");
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        try
         {
-            await image.CopyToAsync(stream);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(stream);
+            }
+            Console.WriteLine($"File saved successfully: {filePath}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving file: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            throw;
         }
 
-        return $"/images/{folder}/{fileName}";
+        var returnUrl = $"/images/{folder}/{fileName}";
+        Console.WriteLine($"Returning URL: {returnUrl}");
+        return returnUrl;
     }
 
     public bool DeleteImage(string? imageUrl)
